@@ -387,7 +387,7 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 7: {
       const reach = smooth((f - 800) / 25);
       figureT(cam, out, { who: "hero", x: 4.3, y: 0, z: -11.3, pose: blendPose(POSES.stand, POSES.reachShelf, reach), expr: "hopeful", seed: 1 }, t);
-      figureT(cam, out, { who: "clerk", x: 4.7, y: 0, z: -12.2, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
+      figureT(cam, out, { who: "clerk", x: 5.0, y: 0, z: -12.2, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
       break;
     }
     case 8: {
