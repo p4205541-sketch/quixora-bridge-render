@@ -349,7 +349,7 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
   switch (id) {
     case 1: break; // macro card: world carries it
     case 2: {
-      const u = smooth((f - 143) / 59);
+      const u = smooth((f - 98) / 75);
       figureT(cam, out, { who: "hero", x: lerp(-2, 2, u), y: 0, z: 7.5, pose: gait(walkPhase(t * 1.2), 55, 55, 4), expr: "hopeful", seed: 1, extras: { bucket: true } }, t);
       figureT(cam, out, { who: "regular", x: lerp(-4, 1, u), y: 0, z: 6.8, pose: gait(walkPhase(t * 1.2 + 0.3), 55, 55, 4), expr: "grin", seed: 2, extras: { bucketFull: true } }, t);
       figureT(cam, out, { who: "playerA", x: lerp(-6, -2, u), y: 0, z: 8.0, pose: gait(walkPhase(t * 1.1 + 0.6), 50, 50, 4), expr: "happy", seed: 11, extras: { bucket: true } }, t);
@@ -359,8 +359,8 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 3: {
       const laughing = f >= LAUGH_F;
       const bounce = laughing ? Math.abs(Math.sin((f - LAUGH_F) * 0.35)) * 0.06 : 0;
-      figureT(cam, out, { who: "hero", x: -0.6, y: 0, z: -6.4, pose: laughing ? blendPose(POSES.ask, POSES.stand, smooth((f - LAUGH_F) / 12)) : POSES.ask, expr: laughing ? "confused" : "hopeful", seed: 1, swaps: [8.89], extras: { bucket: true } }, t);
-      figureT(cam, out, { who: "regular", x: 0.5, y: bounce, z: -6.2, pose: laughing ? POSES.laughPose : POSES.stand, expr: laughing ? "laugh" : "smirk", seed: 2, swaps: [8.89], extras: { bucketFull: true } }, t);
+      figureT(cam, out, { who: "hero", x: -0.6, y: 0, z: -6.4, pose: laughing ? blendPose(POSES.ask, POSES.stand, smooth((f - LAUGH_F) / 12)) : POSES.ask, expr: laughing ? "confused" : "hopeful", seed: 1, swaps: [8.18], extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "regular", x: 0.5, y: bounce, z: -6.2, pose: laughing ? POSES.laughPose : POSES.stand, expr: laughing ? "laugh" : "smirk", seed: 2, swaps: [8.18], extras: { bucketFull: true } }, t);
       break;
     }
     case 4: {
@@ -372,33 +372,33 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       break;
     }
     case 5: {
-      const win = smooth((f - 450) / 20);
-      figureT(cam, out, { who: "hero", x: -0.4, y: 0, z: -6.7, pose: POSES.holdBucket, expr: win > 0.5 ? "determined" : "hopeful", seed: 1, swaps: [15.0], extras: { bucketFull: win > 0.5 } }, t);
-      dust(out, f, 450, 18, -0.4, -6.9, 0.8);
+      const win = smooth((f - 399) / 20);
+      figureT(cam, out, { who: "hero", x: -0.4, y: 0, z: -6.7, pose: POSES.holdBucket, expr: win > 0.5 ? "determined" : "hopeful", seed: 1, swaps: [13.3], extras: { bucketFull: win > 0.5 } }, t);
+      dust(out, f, 399, 18, -0.4, -6.9, 0.8);
       break;
     }
     case 6: {
-      const slump = smooth((f - 620) / 30);
+      const slump = smooth((f - 569) / 30);
       const shake: ExprName = Math.floor(f / 8) % 2 === 0 ? "politeL" : "politeR";
       figureT(cam, out, { who: "hero", x: -0.15, y: 0, z: -10.2, pose: blendPose(POSES.stand, POSES.slump, slump), expr: "confused", seed: 1, extras: { bucket: true } }, t);
       figureT(cam, out, { who: "clerk", x: 0.3, y: 0, z: -11.9, pose: POSES.stand, expr: shake, seed: 3, extras: { clipboard: true } }, t);
       break;
     }
     case 7: {
-      const reach = smooth((f - 800) / 25);
+      const reach = smooth((f - 715) / 25);
       figureT(cam, out, { who: "hero", x: 4.3, y: 0, z: -11.3, pose: blendPose(POSES.stand, POSES.reachShelf, reach), expr: "hopeful", seed: 1 }, t);
       figureT(cam, out, { who: "clerk", x: 5.0, y: 0, z: -12.2, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
       break;
     }
     case 8: {
-      const walk = smooth((f - 880) / 80);
+      const walk = smooth((f - 780) / 80);
       const hx = lerp(-0.2, 8.4, walk), hz = lerp(-0.5, 7.4, walk);
-      const stepBack = smooth((f - 960) / 40);
+      const stepBack = smooth((f - 860) / 40);
       const rx = lerp(lerp(1.6, 9.2, walk), 8.6, stepBack), rz = lerp(lerp(0.6, 6.0, walk), 4.8, stepBack);
       const moving = walk < 1;
       const rMoving = moving || stepBack < 1;
       figureT(cam, out, { who: "hero", x: hx, y: 0, z: hz, pose: moving ? gait(walkPhase(t * 1.3), 60, 60, 5) : POSES.stand, expr: "watchful", seed: 1, extras: { bucket: true } }, t);
-      const slide = smooth((f - 956) / 20);
+      const slide = smooth((f - 856) / 20);
       figureT(cam, out, { who: "regular", x: rx, y: 0, z: rz, pose: rMoving && stepBack < 0.05 ? gait(walkPhase(t * 1.3 + 0.4), 60, 60, 5) : stepBack > 0.05 ? blendPose(POSES.slideArm, POSES.stand, stepBack) : blendPose(POSES.stand, POSES.slideArm, slide), expr: "grin", seed: 2 }, t);
       figureT(cam, out, { who: "windowClerk", x: 10.15, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
@@ -408,8 +408,8 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       break;
     }
     case 10: {
-      // wholesaler: van -> window (1111-1140), carry box back (1140-1190), load + stand
-      const toWin = smooth((f - 1111) / 29), back = smooth((f - 1140) / 50);
+      // wholesaler: van -> window (1008-1037), carry box back (1037-1087), load + stand
+      const toWin = smooth((f - 1008) / 29), back = smooth((f - 1037) / 50);
       let wx: number, wz: number, wpose: PoseDef, wex: Extras = {};
       // via-point path: stay south of the van (z >= 7.0) until east of it (x >= 9.3), then to the window
       const via = (u: number, a: [number, number], b: [number, number], c: [number, number]): [number, number] =>
@@ -422,7 +422,7 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       break;
     }
     case 11: {
-      const set = smooth((f - 1240) / 30);
+      const set = smooth((f - 1133) / 30);
       figureT(cam, out, { who: "wholesaler", x: -9.0, y: 0, z: 6.0, pose: set < 1 ? POSES.carryBox : POSES.stand, expr: "stern", seed: 5, extras: set < 1 ? { box: true } : { briefcase: true } }, t);
       break;
     }
@@ -433,10 +433,10 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       break;
     }
     case 13: {
-      const up = smooth((f - 1400) / 30);
+      const up = smooth((f - 1272) / 30);
       figureT(cam, out, { who: "playerA", x: 0.55, y: 0, z: -10.5, pose: blendPose(POSES.stand, POSES.holdUp, up), expr: "happy", seed: 11 }, t);
       figureT(cam, out, { who: "clerk", x: 0.1, y: 0, z: -11.9, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
-      figureT(cam, out, { who: "hero", x: -0.35, y: 0, z: -10.7, pose: POSES.stand, expr: "smile", seed: 1, swaps: [46.0] }, t);
+      figureT(cam, out, { who: "hero", x: -0.35, y: 0, z: -10.7, pose: POSES.stand, expr: "smile", seed: 1, swaps: [41.73] }, t);
       break;
     }
     case 14: break; // aerial: world carries the loop
@@ -445,7 +445,7 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       figureT(cam, out, { who: "hero", x: 0, y: bob, z: 4.5, pose: POSES.holdUp, expr: "smile", seed: 1, extras: { cardUp: true } }, t);
       figureT(cam, out, { who: "regular", x: -0.7, y: 0, z: 3.6, pose: POSES.laughPose, expr: "laugh", seed: 2, extras: { bucketFull: true } }, t);
       figureT(cam, out, { who: "playerB", x: 0.7, y: 0, z: 3.4, pose: POSES.stand, expr: "happy", seed: 12, extras: { bucket: true } }, t);
-      const ox15 = lerp(-0.5, 1.0, smooth((f - 1619) / 167)); // officer cameo: strolls past behind, nods
+      const ox15 = lerp(-0.5, 1.0, smooth((f - 1472) / 166)); // officer cameo: strolls past behind, nods
       figureT(cam, out, { who: "officer", x: ox15, y: 0, z: 2.0, pose: gait(walkPhase(t * 0.9), 45, 40, 3), expr: "polite", seed: 6 }, t);
       break;
     }
