@@ -292,7 +292,7 @@ export class PachinkoWorld {
     }
     // pillars (red/black stripes)
     const pillarMat = new THREE.MeshLambertMaterial({ map: rep(stripeTex(), 2, 3) });
-    for (const [x, z] of [[-4, -4], [4, -4], [-4, -10], [4, -10]] as const) {
+    for (const [x, z] of [[-6.5, -4], [6.5, -4], [-6.5, -10], [6.5, -10]] as const) { // near the walls: clear of the S6/S7/S13 sightlines
       const pil = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 3.4, 10), pillarMat);
       pil.position.set(x, 1.7, z); pil.castShadow = true; R.add(pil);
     }
