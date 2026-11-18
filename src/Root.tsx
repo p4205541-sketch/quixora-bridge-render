@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { BridgeShort, BRIDGE_FRAMES } from "./videos/bridge/Bridge";
 import { FlyingThunderShort, THUNDER_FRAMES } from "./videos/thunder/Thunder";
+import { PachinkoLoopShort, PACHINKO_FRAMES } from "./videos/pachinko_loop/PachinkoLoopShort";
 
 export const Root: React.FC = () => (
   <>
@@ -25,6 +26,14 @@ export const Root: React.FC = () => (
       id="FlyingThunderShort"
       component={FlyingThunderShort}
       durationInFrames={THUNDER_FRAMES}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+    <Composition
+      id="PachinkoLoopShort"
+      component={PachinkoLoopShort}
+      durationInFrames={PACHINKO_FRAMES}
       fps={30}
       width={1080}
       height={1920}
