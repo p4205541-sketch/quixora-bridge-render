@@ -178,7 +178,11 @@ const S4 = (f: number) => { // scale pull-back + rise over the hall row (south b
 const S5 = (f: number) => dolly([-0.3, 1.4, -3.2], [-0.3, 1.05, -7.5], pushK(f, 435, 0.0018), { fov: 38 }); // machine + cascade, full figure + bucket in frame
 const S6 = (f: number) => dolly([0, 2.6, -6.6], [0, 1.0, -11.2], pushK(f, 573, 0.001), { fov: 40 }); // counter refusal, high + pulled back so both heads fit
 const S7 = (f: number) => dolly([3.6, 2.3, -7.6], [4.4, 1.0, -12.2], pushK(f, 742, 0.001), { fov: 42 }); // prize shelf from the machine gap: no machine blocks the lens
-const S8a = (f: number) => dolly([1.2, 1.6, 0.5], [7.9, 1.15, 5.6], 1, { fov: 42 }); // walk wide: both figures fit the whole way
+const S8a = (f: number) => { // tracking shot: camera glides 6m south of the walk midpoint, both figures framed the whole way (static cam sat ON the hero's path: 0.3s of abstract close-up)
+  const u = smooth((f - 880) / 80);
+  const mx = lerp(0.7, 8.8, u), mz = lerp(0.05, 6.7, u);
+  return { pos: [mx, 1.7, mz + 6.0] as V3, look: [mx, 1.15, mz] as V3, fov: 50, roll: 0 };
+};
 const S8b = (f: number) => dolly([6.0, 1.6, 11.0], [9.8, 1.05, 6.0], pushK(f, 960, 0.001), { fov: 40 }); // window from the south-east, pulled back: hero + box + clerk all fit
 const S9 = (f: number) => dolly([7.2, 1.6, 8.4], [9.9, 1.1, 6.2], pushK(f, 1029, 0.0015), { fov: 38 }); // pivot: the box + clerk, pulled back so her head fits
 const S10 = (f: number) => dolly([4.5, 1.8, 10.5], [9.4, 1.05, 6.0], pushK(f, 1111, 0.0012), { fov: 40 }); // dawn, oblique: van recedes, wholesaler + window + clerk all clear
