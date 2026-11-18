@@ -426,7 +426,7 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 12: {
       figureT(cam, out, { who: "clerk", x: 0.1, y: 0, z: -0.6, pose: POSES.holdUp, expr: "polite", seed: 3 }, t);
       figureT(cam, out, { who: "wholesaler", x: 4.3, y: 0, z: 2.4, pose: POSES.stand, expr: "stern", seed: 5, extras: { briefcase: true } }, t);
-      figureT(cam, out, { who: "hero", x: -0.6, y: 0, z: -0.4, pose: POSES.stand, expr: "watchful", seed: 1 }, t);
+      figureT(cam, out, { who: "hero", x: -0.35, y: 0, z: -0.4, pose: POSES.stand, expr: "watchful", seed: 1 }, t);
       break;
     }
     case 13: {
