@@ -1,5 +1,5 @@
 // Timeline of the Pachinko Gold Card 3D build: 15 shots timed to the FINAL voiceover
-// (~/workspace/quixora_short_pachinko/audio/timings_v2.json, 53.89 s speech, 54.59 s total).
+// (audio/timings_v2.json, 53.89 s speech, 54.59 s total).
 // Shot boundaries are ceil(unit-start * 30); shot 1 starts at frame 0. Camera grammar follows
 // the thunder story: symmetric smootherstep glides, push-ins on holds, fast glides for
 // whips, hard cuts between shots. NO composer/DOF anywhere (EffectComposer outputs zero
