@@ -19,7 +19,7 @@ import {
 const SKY_NIGHT = ["#3f6d9f", "#2c4a72", "#1c2a4a", "#141f38", "#0e1a30"]; // horizon -> zenith
 const SKY_DAWN = ["#f0d9a8", "#c5cfe0", "#aebfd6", "#9db2cc", "#8fa8c4"];
 const SKY_E = [0, 3, 8, 16, 40];
-const FOG_NIGHT = "#2c4a72", FOG_DAWN = "#b8c4d4";
+const FOG_NIGHT = "#2c4a72", FOG_DAWN = "#d8c4a8";
 
 const glowTex = (key: string, inner: string, outer: string) => ctex(key, 128, 128, (g) => {
   const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
@@ -161,6 +161,9 @@ export class PachinkoWorld {
   private loopGlows: THREE.Sprite[] = [];
   private aerialRing: THREE.Mesh; private aerialRingMat: THREE.MeshBasicMaterial;
   private traveler: THREE.Sprite;
+  private pedestal: THREE.Mesh;
+  private reflections: THREE.Mesh[] = [];
+  private warehouseLight: THREE.PointLight;
   private cascade: THREE.Points; private cascadeMat: THREE.PointsMaterial;
   private cascadePos: Float32Array; private cascadeSeed: Float32Array;
   private screenMats: THREE.MeshBasicMaterial[] = [];
@@ -205,8 +208,8 @@ export class PachinkoWorld {
       this.stars = new THREE.Points(g, this.starMat);
       this.stars.frustumCulled = false; this.stars.layers.set(NOINK); R.add(this.stars);
     }
-    this.hemi = new THREE.HemisphereLight("#8aa3cc", "#4a4238", 0.5);
-    this.moon = new THREE.DirectionalLight("#b8cdea", 0.9);
+    this.hemi = new THREE.HemisphereLight("#8aa3cc", "#4a4238", 0.8);
+    this.moon = new THREE.DirectionalLight("#b8cdea", 1.2);
     this.moon.castShadow = true;
     this.moon.shadow.mapSize.set(2048, 2048);
     this.sun = new THREE.DirectionalLight("#ffb35e", 0);
@@ -215,20 +218,24 @@ export class PachinkoWorld {
       const pl = new THREE.PointLight("#ffd9a0", 22, 13, 2);
       pl.position.set(x, 3.1, z); R.add(pl); this.hallLights.push(pl);
     }
-    this.windowLight = new THREE.PointLight("#ffcf8a", 12, 7, 2);
+    this.windowLight = new THREE.PointLight("#ffcf8a", 8, 7, 2);
     this.windowLight.position.set(10.4, 1.6, 6); R.add(this.windowLight);
-    const streetLight = new THREE.PointLight("#ff9ecb", 8, 12, 2);
-    streetLight.position.set(0, 3.4, 8); R.add(streetLight);
+    const streetLight = new THREE.PointLight("#ff9ecb", 14, 14, 2);
+    streetLight.position.set(0, 3.4, 10); R.add(streetLight);
+    const shelfLight = new THREE.PointLight("#ffd9a0", 10, 8, 2);
+    shelfLight.position.set(2, 2.8, -11.5); R.add(shelfLight);
+    this.warehouseLight = new THREE.PointLight("#ffd9a0", 12, 9, 2);
+    this.warehouseLight.position.set(-8.8, 2.6, 6); R.add(this.warehouseLight);
     const hallGlow = new THREE.PointLight("#ffd9a0", 14, 12, 2);
     hallGlow.position.set(0, 2.6, 1.5); R.add(hallGlow);
     this.machineLight = new THREE.PointLight("#ffe9b0", 4, 6, 2);
     this.machineLight.position.set(-0.5, 1.6, -7.2); R.add(this.machineLight);
 
     // ---- ground: asphalt city + plaza + hall carpet ----
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 120), new THREE.MeshPhongMaterial({ map: rep(asphaltTex(), 30, 22), specular: "#5a6a8a", shininess: 60 }));
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 120), new THREE.MeshPhongMaterial({ map: rep(asphaltTex(), 30, 22), color: "#b0b6c4", specular: "#5a6a8a", shininess: 60 }));
     ground.rotation.x = -Math.PI / 2; ground.position.set(0, 0, 6);
     ground.receiveShadow = true; R.add(ground);
-    const plaza = new THREE.Mesh(new THREE.PlaneGeometry(27, 15), new THREE.MeshLambertMaterial({ map: rep(asphaltTex(), 6, 4), color: "#8a8fa0" }));
+    const plaza = new THREE.Mesh(new THREE.PlaneGeometry(27, 15), new THREE.MeshLambertMaterial({ map: rep(asphaltTex(), 6, 4), color: "#c0c4d0" }));
     plaza.rotation.x = -Math.PI / 2; plaza.position.set(0, 0.012, 6.5); plaza.receiveShadow = true; R.add(plaza);
     const carpet = new THREE.Mesh(new THREE.PlaneGeometry(17.6, 12.6), new THREE.MeshLambertMaterial({ map: rep(carpetTex(), 5, 4) }));
     carpet.rotation.x = -Math.PI / 2; carpet.position.set(0, 0.02, -7.5); carpet.receiveShadow = true; R.add(carpet);
@@ -240,8 +247,8 @@ export class PachinkoWorld {
     });
     for (const [x, z, col, w] of [[5.5, 3.5, "#ff6ba8", 2.0], [-4, 4.5, "#4ad6ff", 1.5], [0, 2.5, "#ffd34d", 2.4]] as const) {
       const refl = new THREE.Mesh(new THREE.PlaneGeometry(w, 5),
-        new THREE.MeshBasicMaterial({ map: reflTex(), color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.3, fog: false }));
-      refl.rotation.x = -Math.PI / 2; refl.position.set(x, 0.03, z); refl.layers.set(NOINK); R.add(refl);
+        new THREE.MeshBasicMaterial({ map: reflTex(), color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2, fog: false }));
+      refl.rotation.x = -Math.PI / 2; refl.position.set(x, 0.03, z); refl.layers.set(NOINK); this.reflections.push(refl); R.add(refl);
     }
 
     // ---- hall shell: facade (with door opening), interior walls, roof ----
@@ -269,6 +276,12 @@ export class PachinkoWorld {
     box(0.3, 4.2, 13, plasterMat, -9, 2.1, -7.5);
     box(0.3, 4.2, 13, plasterMat, 9, 2.1, -7.5);
     box(18.4, 0.3, 13.4, wallMat, 0, 4.35, -7.5);
+    // roof furniture (reads in the aerials; was a flat brown expanse)
+    box(1.4, 0.7, 1.4, new THREE.MeshLambertMaterial({ color: "#6a7080" }), -5, 4.85, -5);
+    box(1.1, 0.5, 1.1, new THREE.MeshLambertMaterial({ color: "#5a5e6a" }), 3, 4.75, -10);
+    box(0.8, 1.0, 0.8, new THREE.MeshLambertMaterial({ color: "#7a7a86" }), 6, 5.0, -4);
+    const skylight = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.6), new THREE.MeshBasicMaterial({ color: "#ffe9b8" }));
+    skylight.rotation.x = -Math.PI / 2; skylight.position.set(-1, 4.52, -8); R.add(skylight);
     // ceiling light strips (emissive planes)
     const stripMat = new THREE.MeshBasicMaterial({ color: "#fff2d0" });
     for (const z of [-4, -8, -12]) {
@@ -311,7 +324,7 @@ export class PachinkoWorld {
     box(6.3, 0.08, 1.0, new THREE.MeshLambertMaterial({ color: "#d8c8a8" }), 0, 1.09, -11.2);
     const noCash = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.55),
       new THREE.MeshBasicMaterial({ map: signTex("pachNoCash", "NO CASH", "#ffffff", "#8e1e28") }));
-    noCash.position.set(0, 2.25, -13.8); R.add(noCash);
+    noCash.position.set(0, 1.95, -13.8); R.add(noCash);
     this.neonMats.push(noCash.material as THREE.MeshBasicMaterial);
     // prize shelf unit at x = 4.5
     const shelfFrame = new THREE.MeshLambertMaterial({ map: woodTex() });
@@ -331,10 +344,10 @@ export class PachinkoWorld {
       box(0.24, 0.34, 0.03, goldMat, 3.5 + i * 0.5, 0.95, -12.42, false);
 
     // ---- neon signs on the hall facade ----
-    const mkSign = (texKey: string, text: string, fg: string, bg: string, w: number, h: number, x: number, y: number, z: number, vertical = false) => {
+    const mkSign = (texKey: string, text: string, fg: string, bg: string, w: number, h: number, x: number, y: number, z: number, vertical = false, yaw = 0) => {
       const m = new THREE.MeshBasicMaterial({ map: signTex(texKey, text, fg, bg, vertical) });
       const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
-      s.position.set(x, y, z); R.add(s); this.neonMats.push(m); return s;
+      s.position.set(x, y, z); s.rotation.y = yaw; R.add(s); this.neonMats.push(m); return s;
     };
     mkSign("pachSignPach", "PACHINKO", "#ff9ecb", "#3a0a24", 0.9, 3.6, 5.5, 5.6, -0.75, true);
     mkSign("pachSignHall", "PRIZE HALL", "#ffe066", "#2a1a08", 4.2, 0.8, 0, 3.6, -0.75);
@@ -354,7 +367,7 @@ export class PachinkoWorld {
     }
     const bCols = ["#232c40", "#2c2438", "#1f3040", "#33262e", "#28323e"];
     for (let i = 0; i < 5; i++) { // south row (behind the street cameras)
-      const w = 4.5 + hh(i, 3) * 2, hgt = 7 + hh(i, 4) * 6;
+      const w = 4.5 + hh(i, 3) * 2, hgt = 6 + hh(i, 4) * 3;
       box(w, hgt, 4, new THREE.MeshLambertMaterial({ map: facadeTex(`pachSouth${i}`, bCols[i], 0.45) }), -12 + i * 6, hgt / 2, 17);
     }
     for (let i = 0; i < 3; i++) { // east + west flanks
@@ -382,7 +395,12 @@ export class PachinkoWorld {
     box(0.5, 0.9, 2, brickMat, 10, 0.45, 6);  // below the opening
     box(0.5, 1.7, 2, brickMat, 10, 3.15, 6);  // above the opening
     box(0.7, 0.08, 2.2, new THREE.MeshLambertMaterial({ map: woodTex() }), 9.85, 0.94, 6); // ledge
-    const winGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.3), new THREE.MeshBasicMaterial({ color: "#ffcf8a" }));
+    const winGlowTex = ctex("pachWinGlow", 128, 96, (g) => {
+      const gr = g.createRadialGradient(64, 48, 6, 64, 48, 70);
+      gr.addColorStop(0, "#ffd9a0"); gr.addColorStop(0.55, "#b07a3e"); gr.addColorStop(1, "#3a2412");
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 96);
+    });
+    const winGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.3), new THREE.MeshBasicMaterial({ map: winGlowTex }));
     winGlow.position.set(10.9, 1.6, 6); winGlow.rotation.y = -Math.PI / 2; R.add(winGlow);
     box(3.4, 4.4, 7, new THREE.MeshLambertMaterial({ map: facadeTex("pachAlleySide", "#252a38", 0.3) }), 12.2, 2.2, 6); // alley side building
     box(1.2, 0.3, 6.4, wallMat, 10, 4.15, 6); // alley roof slab
@@ -402,12 +420,14 @@ export class PachinkoWorld {
     doorRecess.position.set(-9.95, 1.4, 6); R.add(doorRecess);
     const roller = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.9), new THREE.MeshLambertMaterial({ map: rep(corrugTex(), 2, 1), color: "#8a94a8" }));
     roller.position.set(-9.8, 2.6, 6); roller.rotation.y = Math.PI / 2; R.add(roller);
-    mkSign("pachWholesale", "WHOLESALE", "#e8e4da", "#2a3548", 3.0, 0.6, -9.75, 3.6, 6);
+    const doorGlow = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.0), new THREE.MeshBasicMaterial({ map: winGlowTex }));
+    doorGlow.position.set(-9.78, 1.15, 6); doorGlow.rotation.y = Math.PI / 2; R.add(doorGlow);
+    mkSign("pachWholesale", "WHOLESALE", "#e8e4da", "#2a3548", 3.0, 0.6, -9.75, 3.6, 6, false, Math.PI / 2);
     // stacked boxes inside + outside the door
     const cardMat = new THREE.MeshLambertMaterial({ color: "#b08a4e" });
     const stackDefs: [number, number, number, number][] = [
-      [-10.6, 0.3, 5.0, 0.6], [-10.6, 0.9, 5.0, 0.6], [-10.6, 0.3, 5.7, 0.6],
-      [-10.6, 0.3, 6.6, 0.6], [-10.6, 0.9, 6.6, 0.6], [-10.6, 1.5, 6.6, 0.6],
+      [-9.55, 0.3, 4.6, 0.6], [-9.55, 0.9, 4.6, 0.6], [-9.55, 0.3, 5.3, 0.6],
+      [-9.55, 0.3, 6.9, 0.6], [-9.55, 0.9, 6.9, 0.6], [-9.55, 1.5, 6.9, 0.6],
       [-9.4, 0.3, 4.6, 0.6], [-9.4, 0.3, 7.4, 0.6], [-9.5, 0.9, 7.4, 0.6],
     ];
     for (const [x, y, z, s] of stackDefs) {
@@ -441,25 +461,21 @@ export class PachinkoWorld {
 
     // ---- macro gold card (shot 1): portrait card + plastic case + flare ----
     this.macroCard = new THREE.Group();
-    const mcFace = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.62, 0.03), new THREE.MeshPhongMaterial({ map: goldCardTex(), specular: "#fff2b8", shininess: 100, emissive: "#3a2a08" }));
+    const mcFace = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.62, 0.03), new THREE.MeshBasicMaterial({ map: goldCardTex() }));
     mcFace.castShadow = false;
-    const mcCase = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.68, 0.045),
-      new THREE.MeshPhongMaterial({ color: "#ffffff", transparent: true, opacity: 0.16, specular: "#ffffff", shininess: 140 }));
-    const mcEdge = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.02), new THREE.MeshBasicMaterial({ color: "#fff2b8", transparent: true, opacity: 0.35 }));
-    mcEdge.position.z = -0.02;
     this.macroFlare = new THREE.Sprite(new THREE.SpriteMaterial({ map: flareTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
     this.macroFlare.position.set(0.14, 0.18, 0.08); this.macroFlare.layers.set(NOINK);
     this.macroGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("pachMacroGlow", "rgba(255,210,90,0.5)", "rgba(255,180,50,0.2)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
     this.macroGlow.scale.setScalar(1.6); this.macroGlow.layers.set(NOINK);
-    this.macroCard.add(mcEdge, mcFace, mcCase, this.macroFlare, this.macroGlow);
+    this.macroCard.add(mcFace, this.macroFlare, this.macroGlow);
     this.macroCard.position.set(...CARD_MACRO);
     R.add(this.macroCard);
-    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.42, 0.5, 20), new THREE.MeshLambertMaterial({ color: "#1c1c22" }));
-    pedestal.position.set(CARD_MACRO[0], 0.25, CARD_MACRO[2]); pedestal.castShadow = true; R.add(pedestal);
+    this.pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.42, 0.5, 20), new THREE.MeshLambertMaterial({ color: "#1c1c22" }));
+    this.pedestal.position.set(CARD_MACRO[0], 0.25, CARD_MACRO[2]); this.pedestal.castShadow = true; R.add(this.pedestal);
 
     // ---- small gold card prop + cash prop + wooden box ----
     this.smallCard = new THREE.Group();
-    const sc = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.012), new THREE.MeshPhongMaterial({ map: goldCardTex(), specular: "#fff2b8", shininess: 100, emissive: "#3a2a08" }));
+    const sc = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.012), new THREE.MeshBasicMaterial({ map: goldCardTex() }));
     this.smallGlint = new THREE.Sprite(new THREE.SpriteMaterial({ map: flareTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
     this.smallGlint.scale.setScalar(0.3); this.smallGlint.layers.set(NOINK);
     this.smallCard.add(sc, this.smallGlint);
@@ -475,9 +491,9 @@ export class PachinkoWorld {
     boxInner.position.y = 0.27;
     this.boxLid = new THREE.Group();
     const lidMesh = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.05, 0.37), crateMat);
-    lidMesh.position.set(0, 0.025, 0.185);
+    lidMesh.position.set(0.26, 0.025, 0);
     this.boxLid.add(lidMesh);
-    this.boxLid.position.set(0, 0.29, -0.175); // hinge at the back edge
+    this.boxLid.position.set(-0.25, 0.29, 0); // hinge at the west edge: lid flips sideways, clerk stays visible
     this.boxGroup.add(boxBase, boxInner, this.boxLid);
     R.add(this.boxGroup);
 
@@ -511,7 +527,7 @@ export class PachinkoWorld {
 
     // ---- ball cascade: 170 steel balls with gravity (shot 5) ----
     {
-      const n = 170;
+      const n = 260;
       this.cascadePos = new Float32Array(n * 3);
       this.cascadeSeed = new Float32Array(n * 4);
       for (let i = 0; i < n; i++) {
@@ -520,7 +536,7 @@ export class PachinkoWorld {
       }
       const g = new THREE.BufferGeometry();
       g.setAttribute("position", new THREE.BufferAttribute(this.cascadePos, 3));
-      this.cascadeMat = new THREE.PointsMaterial({ color: "#e8eaee", size: 0.075, map: ballTex(), transparent: true, opacity: 0.95, depthWrite: false, fog: false });
+      this.cascadeMat = new THREE.PointsMaterial({ color: "#ffffff", size: 0.09, map: ballTex(), transparent: true, opacity: 0.98, depthWrite: false, fog: false });
       this.cascade = new THREE.Points(g, this.cascadeMat);
       this.cascade.frustumCulled = false; this.cascade.layers.set(NOINK);
       R.add(this.cascade);
@@ -541,23 +557,26 @@ export class PachinkoWorld {
     // ---- lights: night -> dawn ramp ----
     this.hemi.color.set("#8aa3cc").lerp(new THREE.Color("#cfd8e8"), du);
     this.hemi.groundColor.set("#4a4238").lerp(new THREE.Color("#8a8078"), du);
-    this.hemi.intensity = lerp(0.5, 0.9, du);
+    this.hemi.intensity = lerp(0.8, 1.15, du);
     const moonDir = V(-0.35, 0.75, -0.55).normalize();
     this.moon.color.set("#b8cdea");
-    this.moon.intensity = lerp(0.9, 0.15, du);
+    this.moon.intensity = lerp(1.2, 0.15, du);
     this.moon.position.copy(focus).addScaledVector(moonDir, 220);
     this.moon.target.position.copy(focus);
     const Rr = THREE.MathUtils.clamp(dist * 1.15 + 7, 12, 40);
     const sc = this.moon.shadow.camera;
     sc.left = -Rr; sc.right = Rr; sc.top = Rr; sc.bottom = -Rr; sc.near = 150; sc.far = 320; sc.updateProjectionMatrix();
     this.moon.shadow.bias = -0.0003; this.moon.shadow.normalBias = 0.03;
-    const sunDir = V(0.85, 0.18, -0.4).normalize();
+    const sunDir = V(0.85, 0.35, -0.4).normalize();
     this.sun.position.copy(focus).addScaledVector(sunDir, 220);
     this.sun.target.position.copy(focus);
-    this.sun.intensity = lerp(0, 2.4, du);
+    this.sun.intensity = lerp(0, 3.0, du);
     this.sun.castShadow = du > 0.6;
     this.hallLights.forEach((pl, i) => { pl.intensity = lerp(22, 10, du) * (1 + 0.05 * Math.sin(t * 7 + i * 2)); });
-    this.windowLight.intensity = lerp(12, 6, du);
+    this.windowLight.intensity = lerp(8, 4, du);
+    this.warehouseLight.intensity = lerp(12, 6, du);
+    this.pedestal.visible = id === 1;
+    this.reflections.forEach((r) => { r.visible = id !== 4 && id !== 14; });
     // machine win light: spikes with the cascade
     const ck = cascadeK(f);
     this.machineLight.intensity = 4 + ck * (8 + 4 * Math.sin(t * 18));
@@ -641,7 +660,7 @@ export class PachinkoWorld {
       this.boxGroup.position.set(bx.p[0], bx.p[1] - 0.28, bx.p[2]);
       // lid open through shot 8, closes in shot 9, stays shut after
       const open = id === 8 ? 1 : 1 - lidU(f);
-      this.boxLid.rotation.x = -open * 1.9;
+      this.boxLid.rotation.z = open * 1.9;
     }
     // ---- van ----
     const vn = vanAt(id, f);
@@ -671,14 +690,14 @@ export class PachinkoWorld {
     // ---- ball cascade (shot 5): gravity arcs from the machine tray into the bucket ----
     this.cascade.visible = ck > 0;
     if (ck > 0) {
-      const n = 170;
+      const n = 260;
       for (let i = 0; i < n; i++) {
         const ph = this.cascadeSeed[i * 4], sx = this.cascadeSeed[i * 4 + 1], sz = this.cascadeSeed[i * 4 + 2], sp = this.cascadeSeed[i * 4 + 3];
         const cycle = 0.8, age = (((t * (0.9 + sp * 0.3) + ph) % 1) + 1) % 1 * cycle;
-        const x0 = -0.75 + sx * 0.4, z0 = -7.6 + sz * 0.2;
-        const vx = (sx - 0.5) * 0.3, vy = -0.3, vz = 2.4;
-        const y = 1.45 + vy * age - 4.9 * age * age;
-        if (y < 0.72 || age > 0.42) { this.cascadePos.set([0, -10, 0], i * 3); continue; } // landed in the bucket
+        const x0 = -0.95 + sx * 0.4, z0 = -7.0 + sz * 0.2;
+        const vx = (sx - 0.5) * 0.3, vy = -0.3, vz = 2.0;
+        const y = 1.5 + vy * age - 4.9 * age * age;
+        if (y < 0.72 || age > 0.45) { this.cascadePos.set([0, -10, 0], i * 3); continue; } // landed in the bucket
         this.cascadePos.set([x0 + vx * age, y, z0 + vz * age], i * 3);
       }
       (this.cascade.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
