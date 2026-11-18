@@ -176,16 +176,16 @@ const S4 = (f: number) => { // scale pull-back + rise over the hall row (south b
   return { pos: [0, lerp(5, 6.5, u), lerp(9, 11, u)] as V3, look: [0, 0.8, 3] as V3, fov: 50, roll: 0 };
 };
 const S5 = (f: number) => dolly([-0.3, 1.4, -3.2], [-0.3, 1.05, -7.5], pushK(f, 435, 0.0018), { fov: 38 }); // machine + cascade, full figure + bucket in frame
-const S6 = (f: number) => dolly([0, 2.3, -7.6], [0, 1.0, -11.2], pushK(f, 573, 0.001), { fov: 40 }); // counter refusal, high over the machines
-const S7 = (f: number) => dolly([4.3, 2.3, -7.6], [4.3, 1.0, -12.2], pushK(f, 742, 0.001), { fov: 42 }); // prize shelf, high over the machines like S6/S13
-const S8a = (f: number) => dolly([1.2, 1.6, 0.5], [7.6, 1.15, 5.6], 1, { fov: 42 }); // walk wide: both figures fit the whole way (tracking cam was too close)
-const S8b = (f: number) => dolly([6.6, 1.5, 9.2], [9.9, 1.05, 6.0], pushK(f, 960, 0.001), { fov: 40 }); // window close-up from the south-east: hero + box + clerk all fit
-const S9 = (f: number) => dolly([7.6, 1.5, 7.8], [9.9, 1.05, 6.2], pushK(f, 1029, 0.0015), { fov: 38 }); // pivot: the box + clerk, pulled back
-const S10 = (f: number) => dolly([9.0, 1.7, 10.5], [9.6, 1.1, 6.0], pushK(f, 1111, 0.0012), { fov: 40 }); // looking north at the window: van edge + wholesaler + window
+const S6 = (f: number) => dolly([0, 2.6, -6.6], [0, 1.0, -11.2], pushK(f, 573, 0.001), { fov: 40 }); // counter refusal, high + pulled back so both heads fit
+const S7 = (f: number) => dolly([3.6, 2.3, -7.6], [4.4, 1.0, -12.2], pushK(f, 742, 0.001), { fov: 42 }); // prize shelf from the machine gap: no machine blocks the lens
+const S8a = (f: number) => dolly([1.2, 1.6, 0.5], [7.9, 1.15, 5.6], 1, { fov: 42 }); // walk wide: both figures fit the whole way
+const S8b = (f: number) => dolly([6.0, 1.6, 11.0], [9.8, 1.05, 6.0], pushK(f, 960, 0.001), { fov: 40 }); // window from the south-east, pulled back: hero + box + clerk all fit
+const S9 = (f: number) => dolly([7.2, 1.6, 8.4], [9.9, 1.1, 6.2], pushK(f, 1029, 0.0015), { fov: 38 }); // pivot: the box + clerk, pulled back so her head fits
+const S10 = (f: number) => dolly([-1.0, 2.0, 8.5], [8.0, 1.0, 6.0], pushK(f, 1111, 0.0012), { fov: 44 }); // wide dawn shot: van + wholesaler + window + clerk all read
 const S11 = (f: number) => dolly([-5.0, 1.8, 6.0], [-10.5, 1.4, 6.0], pushK(f, 1221, 0.0012), { fov: 40 }); // warehouse door, straight-on
-const S12a = (f: number) => dolly([5.8, 1.6, 4.8], [3.2, 1.1, 1.6], 1, { fov: 40 }); // van + wholesaler
+const S12a = (f: number) => dolly([6.8, 1.8, 6.5], [3.0, 1.0, 1.2], 1, { fov: 42 }); // van + wholesaler, pulled back so neither fills the frame
 const S12b = (f: number) => dolly([1.0, 1.55, 4.0], [0.1, 1.2, -0.6], pushK(f, 1333, 0.0015), { fov: 40 }); // glide to the clerk at the door
-const S13 = (f: number) => dolly([0.2, 2.5, -6.8], [0.2, 1.0, -11.2], pushK(f, 1367, 0.001), { fov: 46 }); // contrast at counter, high + wide for three figures
+const S13 = (f: number) => dolly([0.2, 2.3, -6.8], [0.2, 1.05, -11.2], pushK(f, 1367, 0.001), { fov: 46 }); // contrast at counter, high + wide, less empty countertop
 const S14 = (f: number) => { const u = (f - 1464) / 155; return { pos: [lerp(0, 1.5, u), 38, 26] as V3, look: [0, 0, 5] as V3, fov: 46, roll: 0 }; }; // aerial drift, steeper: less occlusion by the south buildings
 const S15 = (f: number) => dolly([0.7, 1.6, 9.8], [0, 1.2, 4.5], pushK(f, 1619, 0.0012), { fov: 40 }); // CTA push-in, pulled back for the trio
 
