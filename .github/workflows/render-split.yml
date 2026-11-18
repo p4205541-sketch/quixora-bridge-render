@@ -21,6 +21,11 @@ on:
         required: true
         default: "2025"
         type: string
+      start_frame:
+        description: "First frame to render (0 = from the start; use to re-render one shot range only)"
+        required: false
+        default: "0"
+        type: string
       chunks:
         description: "Number of parallel chunks to split into"
         required: true
@@ -36,25 +41,27 @@ jobs:
       - id: chunks
         env:
           TOTAL_FRAMES: ${{ inputs.total_frames }}
+          START_FRAME: ${{ inputs.start_frame }}
           CHUNKS: ${{ inputs.chunks }}
         run: |
           MATRIX_JSON=$(python3 - <<'PYEOF'
           import json, math, os
           total = int(os.environ['TOTAL_FRAMES'])
+          start0 = int(os.environ.get('START_FRAME') or 0)
           n = int(os.environ['CHUNKS'])
           size = math.ceil(total / n)
           chunks = []
           for i in range(n):
-              start = i * size
-              end = min((i + 1) * size, total) - 1
+              start = start0 + i * size
+              end = min(start0 + (i + 1) * size, start0 + total) - 1
               if start > end:
                   break
               chunks.append({'index': i, 'frames': f'{start}-{end}'})
           # sanity: contiguous coverage, exact total, no gaps/overlaps
           covered = sum(int(c['frames'].split('-')[1]) - int(c['frames'].split('-')[0]) + 1 for c in chunks)
           assert covered == total, f'coverage {covered} != total {total}'
-          assert chunks[0]['frames'].startswith('0-'), 'first chunk must start at 0'
-          assert chunks[-1]['frames'].endswith(f'-{total - 1}'), 'last chunk must end at total-1'
+          assert chunks[0]['frames'].startswith(f'{start0}-'), 'first chunk must start at start_frame'
+          assert chunks[-1]['frames'].endswith(f'-{start0 + total - 1}'), 'last chunk must end at start_frame+total-1'
           print(json.dumps(chunks))
           PYEOF
           )
