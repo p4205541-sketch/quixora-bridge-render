@@ -41,9 +41,9 @@ const ballTex = () => ctex("pachBall", 64, 64, (g) => {
   g.fillStyle = gr; g.beginPath(); g.arc(32, 32, 30, 0, Math.PI * 2); g.fill();
 });
 const asphaltTex = () => ctex("pachAsphalt", 512, 512, (g, r) => {
-  g.fillStyle = "#23242c"; g.fillRect(0, 0, 512, 512);
+  g.fillStyle = "#3e424e"; g.fillRect(0, 0, 512, 512);
   for (let i = 0; i < 6000; i++) {
-    g.fillStyle = r() < 0.5 ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.25)";
+    g.fillStyle = r() < 0.5 ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.18)";
     g.fillRect(r() * 512, r() * 512, 2, 2);
   }
   for (let i = 0; i < 14; i++) { // faint wet sheen patches
@@ -220,8 +220,10 @@ export class PachinkoWorld {
     }
     this.windowLight = new THREE.PointLight("#ffcf8a", 8, 7, 2);
     this.windowLight.position.set(10.4, 1.6, 6); R.add(this.windowLight);
-    const streetLight = new THREE.PointLight("#ff9ecb", 14, 14, 2);
+    const streetLight = new THREE.PointLight("#ff9ecb", 20, 16, 2);
     streetLight.position.set(0, 3.4, 10); R.add(streetLight);
+    const streetLight2 = new THREE.PointLight("#ffd9a0", 10, 12, 2);
+    streetLight2.position.set(0, 3.4, 4); R.add(streetLight2);
     const shelfLight = new THREE.PointLight("#ffd9a0", 10, 8, 2);
     shelfLight.position.set(2, 2.8, -11.5); R.add(shelfLight);
     this.warehouseLight = new THREE.PointLight("#ffd9a0", 12, 9, 2);
@@ -322,6 +324,11 @@ export class PachinkoWorld {
     // ---- counter + NO CASH sign + prize shelf ----
     box(6, 1.05, 0.8, new THREE.MeshLambertMaterial({ map: woodTex() }), 0, 0.525, -11.2);
     box(6.3, 0.08, 1.0, new THREE.MeshLambertMaterial({ color: "#d8c8a8" }), 0, 1.09, -11.2);
+    // counter clutter (reads from the high S6/S13 cameras; top surface y 1.13)
+    box(0.25, 0.02, 0.35, new THREE.MeshLambertMaterial({ color: "#8a6a3a" }), -0.6, 1.14, -11.3);
+    box(0.24, 0.06, 0.16, new THREE.MeshBasicMaterial({ color: "#e8c85a" }), 0.55, 1.16, -11.2);
+    const penCup = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.12, 10), new THREE.MeshLambertMaterial({ color: "#2a4a6a" }));
+    penCup.position.set(-1.0, 1.19, -11.5); R.add(penCup);
     const noCash = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.55),
       new THREE.MeshBasicMaterial({ map: signTex("pachNoCash", "NO CASH", "#ffffff", "#8e1e28") }));
     noCash.position.set(0, 1.95, -13.8); R.add(noCash);
@@ -401,7 +408,7 @@ export class PachinkoWorld {
       g.fillStyle = gr; g.fillRect(0, 0, 128, 96);
     });
     const winGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.3), new THREE.MeshBasicMaterial({ map: winGlowTex }));
-    winGlow.position.set(10.9, 1.6, 6); winGlow.rotation.y = -Math.PI / 2; R.add(winGlow);
+    winGlow.position.set(10.4, 1.6, 6); winGlow.rotation.y = -Math.PI / 2; R.add(winGlow); // just behind the clerk, in front of the alley building face (x 10.5)
     box(3.4, 4.4, 7, new THREE.MeshLambertMaterial({ map: facadeTex("pachAlleySide", "#252a38", 0.3) }), 12.2, 2.2, 6); // alley side building
     box(1.2, 0.3, 6.4, wallMat, 10, 4.15, 6); // alley roof slab
     // crates + bottles at the wall base
@@ -422,7 +429,7 @@ export class PachinkoWorld {
     roller.position.set(-9.8, 2.6, 6); roller.rotation.y = Math.PI / 2; R.add(roller);
     const doorGlow = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.0), new THREE.MeshBasicMaterial({ map: winGlowTex }));
     doorGlow.position.set(-9.78, 1.15, 6); doorGlow.rotation.y = Math.PI / 2; R.add(doorGlow);
-    mkSign("pachWholesale", "WHOLESALE", "#e8e4da", "#2a3548", 3.0, 0.6, -9.75, 3.6, 6, false, Math.PI / 2);
+    mkSign("pachWholesale", "WHOLESALE", "#e8e4da", "#2a3548", 3.0, 0.6, -9.75, 2.85, 6, false, Math.PI / 2);
     // stacked boxes inside + outside the door
     const cardMat = new THREE.MeshLambertMaterial({ color: "#b08a4e" });
     const stackDefs: [number, number, number, number][] = [
