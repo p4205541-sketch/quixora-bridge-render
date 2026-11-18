@@ -411,9 +411,12 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       // wholesaler: van -> window (1111-1140), carry box back (1140-1190), load + stand
       const toWin = smooth((f - 1111) / 29), back = smooth((f - 1140) / 50);
       let wx: number, wz: number, wpose: PoseDef, wex: Extras = {};
-      if (toWin < 1) { wx = lerp(9.1, 9.4, toWin); wz = lerp(6.6, 6.2, toWin); wpose = gait(walkPhase(t * 1.1), 55, 50, 4); }
-      else if (back < 1) { wx = lerp(9.4, 9.1, back); wz = lerp(6.2, 6.6, back); wpose = POSES.carryBox; wex = { box: true }; }
-      else { wx = 9.1; wz = 6.6; wpose = POSES.stand; wex = { briefcase: true }; }
+      // via-point path: stay south of the van (z >= 7.0) until east of it (x >= 9.3), then to the window
+      const via = (u: number, a: [number, number], b: [number, number], c: [number, number]): [number, number] =>
+        u < 0.5 ? [lerp(a[0], b[0], u * 2), lerp(a[1], b[1], u * 2)] : [lerp(b[0], c[0], (u - 0.5) * 2), lerp(b[1], c[1], (u - 0.5) * 2)];
+      if (toWin < 1) { [wx, wz] = via(toWin, [8.6, 7.5], [9.3, 7.0], [9.5, 6.2]); wpose = gait(walkPhase(t * 1.1), 55, 50, 4); }
+      else if (back < 1) { [wx, wz] = via(back, [9.5, 6.2], [9.3, 7.0], [8.6, 7.5]); wpose = POSES.carryBox; wex = { box: true }; }
+      else { wx = 8.6; wz = 7.5; wpose = POSES.stand; wex = { briefcase: true }; }
       figureT(cam, out, { who: "wholesaler", x: wx, y: 0, z: wz, pose: wpose, expr: "stern", seed: 5, extras: wex }, t);
       figureT(cam, out, { who: "windowClerk", x: 10.15, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
