@@ -181,7 +181,7 @@ const S7 = (f: number) => dolly([3.6, 2.3, -7.6], [4.4, 1.0, -12.2], pushK(f, 74
 const S8a = (f: number) => dolly([1.2, 1.6, 0.5], [7.9, 1.15, 5.6], 1, { fov: 42 }); // walk wide: both figures fit the whole way
 const S8b = (f: number) => dolly([6.0, 1.6, 11.0], [9.8, 1.05, 6.0], pushK(f, 960, 0.001), { fov: 40 }); // window from the south-east, pulled back: hero + box + clerk all fit
 const S9 = (f: number) => dolly([7.2, 1.6, 8.4], [9.9, 1.1, 6.2], pushK(f, 1029, 0.0015), { fov: 38 }); // pivot: the box + clerk, pulled back so her head fits
-const S10 = (f: number) => dolly([6.5, 1.7, 11.0], [9.2, 1.05, 6.2], pushK(f, 1111, 0.0012), { fov: 40 }); // dawn: van rear + wholesaler in the open + window, from the south
+const S10 = (f: number) => dolly([4.5, 1.8, 10.5], [9.4, 1.05, 6.0], pushK(f, 1111, 0.0012), { fov: 40 }); // dawn, oblique: van recedes, wholesaler + window + clerk all clear
 const S11 = (f: number) => dolly([-5.0, 1.8, 6.0], [-10.5, 1.4, 6.0], pushK(f, 1221, 0.0012), { fov: 40 }); // warehouse door, straight-on
 const S12a = (f: number) => dolly([6.8, 1.8, 6.5], [3.0, 1.0, 1.2], 1, { fov: 42 }); // van + wholesaler, pulled back so neither fills the frame
 const S12b = (f: number) => dolly([1.0, 1.55, 4.0], [0.1, 1.2, -0.6], pushK(f, 1333, 0.0015), { fov: 40 }); // glide to the clerk at the door
