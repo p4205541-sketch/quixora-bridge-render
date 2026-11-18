@@ -173,8 +173,8 @@ const S1 = (f: number) => dolly([0.55, 0.55, 1.15], [0, 0.18, 0], pushK(f, 0, 0.
 const S2a = (f: number) => dolly([1.6, 1.2, 3.4], [-0.3, 0.7, -0.3], 1, { fov: 38 });
 const S2b = (f: number) => dolly([0.9, 1.0, 2.6], [-0.3, 0.7, -0.3], pushK(f, 56, 0.002), { fov: 38 }); // whip-pan in (8 f glide)
 const S3 = (f: number) => dolly([2.2, 1.7, 4.8], [0, 0.8, -1], pullK(f, 90, 0.004), { fov: 44 }); // fast pull-back
-const S4a = (f: number) => dolly([0, 24, 26], [0, 0, 55], 1, { fov: 46 });
-const S4b = (f: number) => dolly([2.5, 21, 31], [0, 0, 58], 1, { fov: 46 }); // slow glide over the water
+const S4a = (f: number) => dolly([0, 11, 2], [0, 1.5, 56], 1, { fov: 46 }); // low aerial: horizon + sky in frame, fleet mid-frame (was 24 m up, 40 deg down: frame was all dark water)
+const S4b = (f: number) => dolly([3, 10, 6], [0, 1.5, 59], 1, { fov: 46 }); // slow glide over the water
 const S5a = (f: number) => dolly([-0.6, 1.5, 5.6], [0, 1.0, 0], pushK(f, 259, 0.0015), { fov: 38 });
 const S5b = (f: number) => zoom([-0.3, 1.3, 4.4], [0.15, 0.9, 0.15], 38, pushK(f, 296, 0.004), {}); // snap zoom on the hand
 const S6 = (f: number) => dolly([0, 0.5, 1.7], [0, 0.28, -0.2], pushK(f, 316, 0.0015), { fov: 34 }); // CU hands + bomb
