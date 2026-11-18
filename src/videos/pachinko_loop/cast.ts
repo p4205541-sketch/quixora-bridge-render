@@ -272,26 +272,26 @@ const stickFigure = (p: Pen, who: CharName, po: PoseDef, expr: ExprName, lid: nu
   p.ell(hx, hy, 152, 164, "#fdfdf8", 10);
   // hair / headgear
   if (o.hair === "buzz") {
-    p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 88], [hx - 152, hy - 88]], () =>
-      p.ell(hx, hy - 96, 154, 78, o.hairCol, 0, 180, 360));
+    p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 100], [hx - 152, hy - 100]], () =>
+      p.ell(hx, hy - 108, 154, 64, o.hairCol, 0, 180, 360));
   } else if (o.hair === "slickGrey") {
-    p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 70], [hx - 152, hy - 70]], () => {
-      p.ell(hx, hy - 92, 154, 82, o.hairCol, 0, 180, 360);
-      for (let i = 0; i < 6; i++) p.stroke([[hx - 110 + i * 36, hy - 150], [hx - 96 + i * 36, hy - 118]], 4, "#7A7A82");
+    p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 96], [hx - 152, hy - 96]], () => {
+      p.ell(hx, hy - 104, 154, 68, o.hairCol, 0, 180, 360);
+      for (let i = 0; i < 6; i++) p.stroke([[hx - 110 + i * 36, hy - 150], [hx - 96 + i * 36, hy - 122]], 4, "#7A7A82");
     });
   } else if (o.hair === "bob") {
     p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy + 40], [hx - 152, hy + 40]], () => {
       p.ell(hx, hy - 70, 156, 104, o.hairCol, 0, 180, 360);
-      p.poly([[hx - 156, hy - 60], [hx - 118, hy - 60], [hx - 118, hy + 40], [hx - 156, hy + 40]], o.hairCol, 0);
-      p.poly([[hx + 118, hy - 60], [hx + 156, hy - 60], [hx + 156, hy + 40], [hx + 118, hy + 40]], o.hairCol, 0);
+      p.poly([[hx - 156, hy - 60], [hx - 128, hy - 60], [hx - 128, hy + 10], [hx - 156, hy + 10]], o.hairCol, 0);
+      p.poly([[hx + 128, hy - 60], [hx + 156, hy - 60], [hx + 156, hy + 10], [hx + 128, hy + 10]], o.hairCol, 0);
     });
   } else if (o.hair === "bun") {
     p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 80], [hx - 152, hy - 80]], () =>
       p.ell(hx, hy - 94, 154, 80, o.hairCol, 0, 180, 360));
     p.ell(hx, hy - 168, 46, 34, o.hairCol, 8);
   } else if (o.hair === "flatTop") {
-    p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 96], [hx - 152, hy - 96]], () =>
-      p.poly([[hx - 130, hy - 164], [hx + 130, hy - 164], [hx + 130, hy - 96], [hx - 130, hy - 96]], o.hairCol, 0));
+    p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 104], [hx - 152, hy - 104]], () =>
+      p.poly([[hx - 118, hy - 164], [hx + 118, hy - 164], [hx + 128, hy - 104], [hx - 128, hy - 104]], o.hairCol, 0));
   } else if (o.hair === "messy") {
     p.clip([[hx - 152, hy - 164], [hx + 152, hy - 164], [hx + 152, hy - 60], [hx - 152, hy - 60]], () => {
       for (let i = 0; i < 8; i++) p.poly([[hx - 130 + i * 37, hy - 96], [hx - 108 + i * 37, hy - 96], [hx - 119 + i * 37, hy - 62]], o.hairCol, 0);
@@ -350,10 +350,10 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 1: break; // macro card: world carries it
     case 2: {
       const u = smooth((f - 143) / 59);
-      figureT(cam, out, { who: "hero", x: lerp(-4, 1.5, u), y: 0, z: 12, pose: gait(walkPhase(t * 1.2), 55, 55, 4), expr: "hopeful", seed: 1, extras: { bucket: true } }, t);
-      figureT(cam, out, { who: "regular", x: lerp(-1, 4.5, u), y: 0, z: 11.2, pose: gait(walkPhase(t * 1.2 + 0.3), 55, 55, 4), expr: "grin", seed: 2, extras: { bucketFull: true } }, t);
-      figureT(cam, out, { who: "playerA", x: lerp(-6, -2, u), y: 0, z: 13, pose: gait(walkPhase(t * 1.1 + 0.6), 50, 50, 4), expr: "happy", seed: 11, extras: { bucket: true } }, t);
-      figureT(cam, out, { who: "playerB", x: lerp(5, 7.5, u), y: 0, z: 10.4, pose: gait(walkPhase(t * 1.15 + 0.1), 50, 50, 4), expr: "plain", seed: 12, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "hero", x: lerp(-5, 3, u), y: 0, z: 10.5, pose: gait(walkPhase(t * 1.2), 55, 55, 4), expr: "hopeful", seed: 1, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "regular", x: lerp(-2, 6, u), y: 0, z: 9.8, pose: gait(walkPhase(t * 1.2 + 0.3), 55, 55, 4), expr: "grin", seed: 2, extras: { bucketFull: true } }, t);
+      figureT(cam, out, { who: "playerA", x: lerp(-7, 1, u), y: 0, z: 10.0, pose: gait(walkPhase(t * 1.1 + 0.6), 50, 50, 4), expr: "happy", seed: 11, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "playerB", x: lerp(3, 8, u), y: 0, z: 9.2, pose: gait(walkPhase(t * 1.15 + 0.1), 50, 50, 4), expr: "plain", seed: 12, extras: { bucket: true } }, t);
       break;
     }
     case 3: {
@@ -374,7 +374,6 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 5: {
       const win = smooth((f - 450) / 20);
       figureT(cam, out, { who: "hero", x: -0.4, y: 0, z: -6.7, pose: POSES.holdBucket, expr: win > 0.5 ? "determined" : "hopeful", seed: 1, swaps: [15.0], extras: { bucketFull: win > 0.5 } }, t);
-      figureT(cam, out, { who: "regular", x: 0.45, y: 0, z: -7.3, pose: POSES.crossArms, expr: "smirk", seed: 2 }, t);
       dust(out, f, 450, 18, -0.4, -6.9, 0.8);
       break;
     }
@@ -387,18 +386,20 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     }
     case 7: {
       const reach = smooth((f - 800) / 25);
-      figureT(cam, out, { who: "hero", x: 4.0, y: 0, z: -10.9, pose: blendPose(POSES.stand, POSES.reachShelf, reach), expr: "hopeful", seed: 1 }, t);
-      figureT(cam, out, { who: "clerk", x: 4.8, y: 0, z: -11.9, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
+      figureT(cam, out, { who: "hero", x: 4.3, y: 0, z: -11.3, pose: blendPose(POSES.stand, POSES.reachShelf, reach), expr: "hopeful", seed: 1 }, t);
+      figureT(cam, out, { who: "clerk", x: 4.7, y: 0, z: -12.2, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
       break;
     }
     case 8: {
       const walk = smooth((f - 880) / 80);
-      const hx = lerp(0.2, 8.4, walk), hz = lerp(-0.5, 7.4, walk);
-      const rx = lerp(1.0, 9.2, walk), rz = lerp(-0.3, 6.0, walk);
+      const hx = lerp(-0.2, 8.4, walk), hz = lerp(-0.5, 7.4, walk);
+      const stepBack = smooth((f - 960) / 40);
+      const rx = lerp(lerp(1.6, 9.2, walk), 8.6, stepBack), rz = lerp(lerp(-0.3, 6.0, walk), 4.8, stepBack);
       const moving = walk < 1;
+      const rMoving = moving || stepBack < 1;
       figureT(cam, out, { who: "hero", x: hx, y: 0, z: hz, pose: moving ? gait(walkPhase(t * 1.3), 60, 60, 5) : POSES.stand, expr: "watchful", seed: 1, extras: { bucket: true } }, t);
       const slide = smooth((f - 956) / 20);
-      figureT(cam, out, { who: "regular", x: rx, y: 0, z: rz, pose: moving ? gait(walkPhase(t * 1.3 + 0.4), 60, 60, 5) : blendPose(POSES.stand, POSES.slideArm, slide), expr: "grin", seed: 2 }, t);
+      figureT(cam, out, { who: "regular", x: rx, y: 0, z: rz, pose: rMoving && stepBack < 0.05 ? gait(walkPhase(t * 1.3 + 0.4), 60, 60, 5) : stepBack > 0.05 ? blendPose(POSES.slideArm, POSES.stand, stepBack) : blendPose(POSES.stand, POSES.slideArm, slide), expr: "grin", seed: 2 }, t);
       figureT(cam, out, { who: "windowClerk", x: 10.7, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
     }
@@ -410,21 +411,21 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       // wholesaler: van -> window (1111-1140), carry box back (1140-1190), load + stand
       const toWin = smooth((f - 1111) / 29), back = smooth((f - 1140) / 50);
       let wx: number, wz: number, wpose: PoseDef, wex: Extras = {};
-      if (toWin < 1) { wx = lerp(7.8, 9.3, toWin); wz = lerp(7.6, 6.3, toWin); wpose = gait(walkPhase(t * 1.1), 55, 50, 4); }
-      else if (back < 1) { wx = lerp(9.3, 7.8, back); wz = lerp(6.3, 7.6, back); wpose = POSES.carryBox; wex = { box: true }; }
-      else { wx = 7.8; wz = 7.6; wpose = POSES.stand; wex = { briefcase: true }; }
+      if (toWin < 1) { wx = lerp(8.4, 9.4, toWin); wz = lerp(6.7, 6.2, toWin); wpose = gait(walkPhase(t * 1.1), 55, 50, 4); }
+      else if (back < 1) { wx = lerp(9.4, 8.4, back); wz = lerp(6.2, 6.7, back); wpose = POSES.carryBox; wex = { box: true }; }
+      else { wx = 8.4; wz = 6.7; wpose = POSES.stand; wex = { briefcase: true }; }
       figureT(cam, out, { who: "wholesaler", x: wx, y: 0, z: wz, pose: wpose, expr: "stern", seed: 5, extras: wex }, t);
       figureT(cam, out, { who: "windowClerk", x: 10.7, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
     }
     case 11: {
       const set = smooth((f - 1240) / 30);
-      figureT(cam, out, { who: "wholesaler", x: -9.0, y: 0, z: 5.6, pose: set < 1 ? POSES.carryBox : POSES.stand, expr: "stern", seed: 5, extras: set < 1 ? { box: true } : { briefcase: true } }, t);
+      figureT(cam, out, { who: "wholesaler", x: -9.0, y: 0, z: 6.0, pose: set < 1 ? POSES.carryBox : POSES.stand, expr: "stern", seed: 5, extras: set < 1 ? { box: true } : { briefcase: true } }, t);
       break;
     }
     case 12: {
       figureT(cam, out, { who: "clerk", x: 0.1, y: 0, z: -0.6, pose: POSES.holdUp, expr: "polite", seed: 3 }, t);
-      figureT(cam, out, { who: "wholesaler", x: 3.4, y: 0, z: 2.9, pose: POSES.stand, expr: "stern", seed: 5, extras: { briefcase: true } }, t);
+      figureT(cam, out, { who: "wholesaler", x: 5.2, y: 0, z: 2.2, pose: POSES.stand, expr: "stern", seed: 5, extras: { briefcase: true } }, t);
       figureT(cam, out, { who: "hero", x: -0.6, y: 0, z: -0.4, pose: POSES.stand, expr: "watchful", seed: 1 }, t);
       break;
     }
