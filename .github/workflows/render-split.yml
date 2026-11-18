@@ -105,17 +105,24 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Install ffmpeg (static build)
-        # NOTE: apt-get install hung 9+ min on the runner (slow mirror/lock),
-        # so use the johnvansickle static build instead: ffmpeg + ffprobe,
-        # no package manager involved. --max-time keeps a bad download
-        # from hanging the job.
+        # NOTE: ffmpeg is NOT preinstalled on the runner. apt-get install
+        # hung 9+ min (slow mirror/lock), and the johnvansickle static
+        # download stalled 7+ min from the runner. Primary source is the
+        # BtbN static build served from GitHub's own CDN (fast from
+        # runners); johnvansickle is the fallback. Layout-agnostic: the
+        # ffmpeg binary is located with find after extraction.
         run: |
-          curl -sSL --max-time 180 --retry 2 -o /tmp/ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          if ! curl -sSL --max-time 120 --retry 2 -o /tmp/ffmpeg.tar.xz https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz; then
+            echo "BtbN download failed, trying johnvansickle mirror"
+            curl -sSL --max-time 180 --retry 1 -o /tmp/ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          fi
           mkdir -p /tmp/ffmpeg-static
           tar -xf /tmp/ffmpeg.tar.xz -C /tmp/ffmpeg-static --strip-components=1
-          echo "/tmp/ffmpeg-static" >> "$GITHUB_PATH"
-          /tmp/ffmpeg-static/ffmpeg -version | head -1
-          /tmp/ffmpeg-static/ffprobe -version | head -1
+          FFBIN=$(dirname "$(find /tmp/ffmpeg-static -name ffmpeg -type f | head -1)")
+          echo "ffmpeg dir: $FFBIN"
+          echo "$FFBIN" >> "$GITHUB_PATH"
+          "$FFBIN/ffmpeg" -version | head -1
+          "$FFBIN/ffprobe" -version | head -1
 
       - uses: actions/download-artifact@v4
         with:
