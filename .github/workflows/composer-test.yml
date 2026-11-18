@@ -1,0 +1,26 @@
+name: composer-test
+on:
+  workflow_dispatch:
+    inputs:
+      props:
+        description: 'Remotion inputProps JSON, e.g. {"post":{"fbtype":"byte"}}'
+        required: true
+        type: string
+jobs:
+  still:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Render still
+        run: |
+          npx remotion still src/index.ts BridgeShort out/still.png --frame=100 --scale=0.25 --browser-executable=$(which google-chrome) --gl=swangle --chromium-flags='{"enable-unsafe-swiftshader":true}' --timeout=300000 --props='${{ inputs.props }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: composer-still
+          path: out/still.png
