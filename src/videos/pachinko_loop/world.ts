@@ -325,10 +325,10 @@ export class PachinkoWorld {
     box(6, 1.05, 0.8, new THREE.MeshLambertMaterial({ map: woodTex() }), 0, 0.525, -11.2);
     box(6.3, 0.08, 1.0, new THREE.MeshLambertMaterial({ color: "#d8c8a8" }), 0, 1.09, -11.2);
     // counter clutter (reads from the high S6/S13 cameras; top surface y 1.13)
-    box(0.25, 0.02, 0.35, new THREE.MeshLambertMaterial({ color: "#8a6a3a" }), -0.6, 1.14, -11.3);
-    box(0.24, 0.06, 0.16, new THREE.MeshBasicMaterial({ color: "#e8c85a" }), 0.55, 1.16, -11.2);
+    box(0.25, 0.02, 0.35, new THREE.MeshLambertMaterial({ color: "#8a6a3a" }), -1.2, 1.14, -10.85);
+    box(0.24, 0.06, 0.16, new THREE.MeshBasicMaterial({ color: "#e8c85a" }), 1.1, 1.16, -10.85);
     const penCup = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.12, 10), new THREE.MeshLambertMaterial({ color: "#2a4a6a" }));
-    penCup.position.set(-1.0, 1.19, -11.5); R.add(penCup);
+    penCup.position.set(-1.6, 1.19, -10.9); R.add(penCup);
     const noCash = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.55),
       new THREE.MeshBasicMaterial({ map: signTex("pachNoCash", "NO CASH", "#ffffff", "#8e1e28") }));
     noCash.position.set(0, 1.95, -13.8); R.add(noCash);
