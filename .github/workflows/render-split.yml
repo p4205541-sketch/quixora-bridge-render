@@ -104,12 +104,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Install ffmpeg
+      - name: Install ffmpeg (static build)
+        # NOTE: apt-get install hung 9+ min on the runner (slow mirror/lock),
+        # so use the johnvansickle static build instead: ffmpeg + ffprobe,
+        # no package manager involved. --max-time keeps a bad download
+        # from hanging the job.
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
-          ffmpeg -version | head -1
-          ffprobe -version | head -1
+          curl -sSL --max-time 180 --retry 2 -o /tmp/ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          mkdir -p /tmp/ffmpeg-static
+          tar -xf /tmp/ffmpeg.tar.xz -C /tmp/ffmpeg-static --strip-components=1
+          echo "/tmp/ffmpeg-static" >> "$GITHUB_PATH"
+          /tmp/ffmpeg-static/ffmpeg -version | head -1
+          /tmp/ffmpeg-static/ffprobe -version | head -1
 
       - uses: actions/download-artifact@v4
         with:
