@@ -75,7 +75,9 @@ const bannerTex = () => ctex("thunderBanner", 128, 256, (g) => {
 });
 const moonPathTex = () => ctex("thunderMoonPath", 64, 256, (g) => {
   const gr = g.createLinearGradient(0, 0, 0, 256);
-  gr.addColorStop(0, "rgba(220,235,255,0.85)"); gr.addColorStop(1, "rgba(220,235,255,0.05)");
+  // Canvas top (v=1) is the NEAR/shore end of the plane: glitter must be faint
+  // near the viewer and bright toward the horizon, not a bright road (was reversed).
+  gr.addColorStop(0, "rgba(220,235,255,0.05)"); gr.addColorStop(1, "rgba(220,235,255,0.85)");
   g.fillStyle = gr; g.fillRect(0, 0, 64, 256);
   g.fillStyle = "rgba(255,255,255,0.5)";
   for (let i = 0; i < 24; i++) g.fillRect(14 + Math.random() * 36, Math.random() * 256, 12 + Math.random() * 22, 2);
@@ -210,11 +212,11 @@ export class ThunderWorld {
     }
 
     // ---- water + moon path + glints ----
-    this.waterMat = new THREE.MeshPhongMaterial({ color: "#16283f", specular: "#7a96b8", shininess: 90 });
+    this.waterMat = new THREE.MeshPhongMaterial({ color: "#1d3454", emissive: "#0a1526", specular: "#7a96b8", shininess: 90 });
     const water = new THREE.Mesh(new THREE.PlaneGeometry(640, 220), this.waterMat);
     water.rotation.x = -Math.PI / 2; water.position.set(0, -0.15, SHORE_Z + 110); R.add(water);
-    const path = new THREE.Mesh(new THREE.PlaneGeometry(7, 110),
-      new THREE.MeshBasicMaterial({ map: moonPathTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.55, fog: false }));
+    const path = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 110),
+      new THREE.MeshBasicMaterial({ map: moonPathTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.32, fog: false }));
     path.rotation.x = -Math.PI / 2; path.position.set(-1, -0.1, SHORE_Z + 55); path.layers.set(NOINK); R.add(path);
     for (let i = 0; i < 8; i++) {
       const gl = new THREE.Mesh(new THREE.PlaneGeometry(0.5 + hh(i, 11) * 0.8, 0.12),
@@ -386,23 +388,31 @@ export class ThunderWorld {
     rock.position.set(ROCK_AT[0] - 0.6, 0.3, ROCK_AT[2] - 0.4); rock.scale.set(1.3, 0.8, 1); rock.castShadow = true; R.add(rock);
     R.add(this.farBomb);
 
-    // ---- fleet ----
+    // ---- fleet (shot 4 only: no other shot looks toward +z past the shore) ----
+    // Grouped tight around the shot-4 sightline (was scattered over 140 m wide
+    // while the 9:16 frame is only ~18-24 m wide at fleet distance, so 11 of 12
+    // ships were out of frame) and moonlit (was near-black #10141c on near-black
+    // water: the one in-frame ship read as a black blob).
     for (let i = 0; i < 12; i++) {
       const ship = new THREE.Group();
-      const sc = 0.8 + hh(i, 21) * 0.6;
-      const hullM = new THREE.MeshLambertMaterial({ color: "#10141c" });
+      const sc = 0.9 + hh(i, 21) * 0.4;
+      const hullM = new THREE.MeshLambertMaterial({ color: "#2b3548", emissive: "#141b28" });
       const hull = new THREE.Mesh(new THREE.BoxGeometry(6, 1.2, 1.8), hullM);
       hull.position.y = 0.4;
       const bow = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 1.4), hullM);
       bow.position.set(3.4, 0.35, 0); bow.rotation.z = -0.3;
-      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 5.5, 6), new THREE.MeshLambertMaterial({ color: "#232a36" }));
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 5.5, 6), new THREE.MeshLambertMaterial({ color: "#3d465c", emissive: "#1a2030" }));
       mast.position.y = 3.4;
-      const sail = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.4), new THREE.MeshLambertMaterial({ color: "#232c3c", side: THREE.DoubleSide }));
+      const sail = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.4), new THREE.MeshLambertMaterial({ color: "#55648a", emissive: "#232c44", side: THREE.DoubleSide }));
       sail.position.set(0, 4.2, 0.15);
       const lamp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex("thunderShipLamp", "rgba(255,190,90,1)", "rgba(255,150,50,0.5)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
-      lamp.position.set(-2.6, 1.6, 0); lamp.scale.setScalar(1.1); lamp.layers.set(NOINK);
+      lamp.position.set(-2.6, 2.0, 0); lamp.scale.setScalar(2.4); lamp.layers.set(NOINK);
       ship.add(hull, bow, mast, sail, lamp);
-      ship.position.set(-70 + hh(i, 22) * 140, -0.1, 42 + hh(i, 23) * 53);
+      // Deliberate 3x4 formation centred on the shot-4 sightline: at 50-70 m the
+      // 9:16 frame is ~24-34 m wide. 8 m spacing (hulls 5.4-7.8 m) keeps gaps
+      // between ships; rows recede toward the horizon; jitter keeps it organic.
+      const col = i % 4, row = Math.floor(i / 4);
+      ship.position.set(-12 + col * 8 + (hh(i, 22) - 0.5) * 2, -0.1, 50 + row * 10 + (hh(i, 23) - 0.5) * 2);
       ship.rotation.y = (hh(i, 24) - 0.5) * 0.5;
       ship.scale.setScalar(sc);
       this.fleet.push(ship); R.add(ship);
@@ -526,7 +536,7 @@ export class ThunderWorld {
       m.lookAt(cam.position.x, m.position.y, cam.position.z);
     });
     // water + glints
-    this.waterMat.color.set("#16283f").lerp(new THREE.Color("#3a5a80"), du);
+    this.waterMat.color.set("#1d3454").lerp(new THREE.Color("#3a5a80"), du);
     this.glints.forEach((g, i) => {
       (g.material as THREE.MeshBasicMaterial).opacity = (0.3 + 0.4 * Math.max(0, Math.sin(t * 2 + i * 1.7))) * (1 - du * 0.5);
     });
