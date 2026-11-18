@@ -105,7 +105,7 @@ export const cardAt = (id: number, f: number): { p: V3; vis: boolean; spin: numb
       const s = cardSlideU(f);
       return { p: [lerp(x, 10.1, s), 1.06, lerp(z, 6.0, s)], vis: true, spin: 0 };
     }
-    case 9: return { p: [9.8, 1.15, 6.35], vis: f < 1074, spin: 0 }; // standing in the box, lid covers it
+    case 9: return { p: [9.8, 1.47, 6.35], vis: f < 1074, spin: 0 }; // standing in the box (rim y 1.42), lid covers it
     case 10: { // inside the box the wholesaler carries to the van: ride the box
       const u = smooth((f - 1140) / 50);
       return { p: [lerp(9.8, 7.6, u), 1.0, lerp(6.0, 6.6, u)], vis: false, spin: 0 };
@@ -113,7 +113,7 @@ export const cardAt = (id: number, f: number): { p: V3; vis: boolean; spin: numb
     case 12: return { p: [0.4, 1.5, -0.6], vis: true, spin: 0.3 }; // clerk stocks it at the door
     case 13: { // winner holds it up at the counter
       const u = smooth((f - 1400) / 30);
-      return { p: [lerp(0.3, 1.05, u), lerp(1.15, 1.5, u), lerp(-11.0, -10.5, u)], vis: true, spin: 0.2 };
+      return { p: [lerp(0.3, 0.85, u), lerp(1.2, 1.5, u), lerp(-11.0, -10.5, u)], vis: true, spin: 0.2 };
     }
     default: return { p: [0, -5, 0], vis: false, spin: 0 };
   }
@@ -129,16 +129,16 @@ export const boxAt = (id: number, f: number): { p: V3; vis: boolean } => {
   if (id === 8 || id === 9) return { p: [9.8, 1.12, 6.35], vis: true };
   if (id === 10) {
     const u = smooth((f - 1140) / 50);
-    return { p: [lerp(9.8, 8.5, u), lerp(1.12, 0.95, u), lerp(6.35, 6.7, u)], vis: true };
+    return { p: [lerp(9.8, 9.0, u), lerp(1.12, 0.95, u), lerp(6.35, 6.6, u)], vis: true };
   }
   if (id === 11) return { p: [-9.2, 0.55, 5.2], vis: true };
   return { p: [9.8, 1.12, 6.35], vis: false };
 };
 /** van centre + yaw per shot (visible shots 10-12) */
 export const vanAt = (id: number, f: number): { p: V3; yaw: number; vis: boolean } => {
-  if (id === 10) return { p: [7.5, 0, 5.6], yaw: Math.PI / 2, vis: true }; // parked north of the sightline, east half in frame
+  if (id === 10) return { p: [8.0, 0, 6.0], yaw: 0, vis: true }; // parked along the wall, east side in frame
   if (id === 11) return { p: [0, 0, 0], yaw: 0, vis: false }; // van stays out of the warehouse frame (9:16 has no room for van + door)
-if (id === 12) return { p: [4.6, 0, 1.6], yaw: 0, vis: true }; // nose toward the hall door, read in the first half of the shot
+if (id === 12) return { p: [3.2, 0, 1.6], yaw: 0, vis: true }; // nose toward the hall door, read in the first half of the shot
   return { p: [0, 0, 0], yaw: 0, vis: false };
 };
 
@@ -169,26 +169,23 @@ const dolly = (pos: V3, look: V3, k: number, rest: Partial<Cam> = {}): Shot =>
 
 // ---- framings ----
 const S1 = (f: number) => dolly([0.32, 1.34, 4.4], [0, 1.2, 3.0], pushK(f, 0, 0.005), { fov: 34 }); // macro card, fast push-in
-const S2 = (f: number) => dolly([0, 2.0, 14], [0, 1.4, 0], pushK(f, 143, 0.006), { fov: 44 }); // fast street push-in past the winners
+const S2 = (f: number) => dolly([0, 2.0, 13.5], [0, 1.4, 0], pushK(f, 143, 0.003), { fov: 44 }); // street push-in: winners cross the far lane
 const S3 = (f: number) => dolly([-0.1, 1.5, -1.8], [-0.1, 1.05, -6.8], pushK(f, 202, 0.001), { fov: 42 }); // hall floor two-shot, pulled back so both heads fit
 const S4 = (f: number) => { // scale pull-back + rise over the hall row (south buildings stay behind the lens)
   const u = (f - 343) / 92;
-  return { pos: [0, lerp(13, 16, u), lerp(14, 17, u)] as V3, look: [0, 0, -1] as V3, fov: 48, roll: 0 };
+  return { pos: [0, lerp(5, 6.5, u), lerp(9, 11, u)] as V3, look: [0, 0.8, 3] as V3, fov: 50, roll: 0 };
 };
 const S5 = (f: number) => dolly([-0.3, 1.4, -3.2], [-0.3, 1.05, -7.5], pushK(f, 435, 0.0018), { fov: 38 }); // machine + cascade, full figure + bucket in frame
 const S6 = (f: number) => dolly([0, 2.3, -7.6], [0, 1.0, -11.2], pushK(f, 573, 0.001), { fov: 40 }); // counter refusal, high over the machines
-const S7 = (f: number) => dolly([4.3, 1.5, -9.0], [4.3, 1.2, -12.0], pushK(f, 742, 0.001), { fov: 44 }); // prize shelf, straight-on, wide enough for both heads
-const S8a = (f: number) => { // track the walk: doors -> street -> window corner
-  const u = smooth((f - 880) / 80);
-  return { pos: [lerp(-1.5, 5.2, u), 1.6, lerp(2.5, 8.6, u)] as V3, look: [lerp(0.5, 8.6, u), 1.1, lerp(0, 6.0, u)] as V3, fov: 40, roll: 0 };
-};
-const S8b = (f: number) => dolly([6.8, 1.45, 6.5], [10, 1.05, 6.0], pushK(f, 960, 0.001), { fov: 38 }); // window close-up: regular steps back, revealing the slide
+const S7 = (f: number) => dolly([4.3, 2.3, -7.6], [4.3, 1.0, -12.2], pushK(f, 742, 0.001), { fov: 42 }); // prize shelf, high over the machines like S6/S13
+const S8a = (f: number) => dolly([1.2, 1.6, 0.5], [7.6, 1.15, 5.6], 1, { fov: 42 }); // walk wide: both figures fit the whole way (tracking cam was too close)
+const S8b = (f: number) => dolly([6.6, 1.5, 9.2], [9.9, 1.05, 6.0], pushK(f, 960, 0.001), { fov: 40 }); // window close-up from the south-east: hero + box + clerk all fit
 const S9 = (f: number) => dolly([7.6, 1.5, 7.8], [9.9, 1.05, 6.2], pushK(f, 1029, 0.0015), { fov: 38 }); // pivot: the box + clerk, pulled back
-const S10 = (f: number) => dolly([5.0, 1.7, 8.5], [9.5, 1.1, 6.0], pushK(f, 1111, 0.0012), { fov: 40 }); // wholesaler + van + window in one row
-const S11 = (f: number) => dolly([-5.0, 1.8, 6.0], [-10.5, 1.2, 6.0], pushK(f, 1221, 0.0012), { fov: 40 }); // warehouse door, straight-on
-const S12a = (f: number) => dolly([5.8, 1.6, 4.8], [4.6, 1.1, 1.6], 1, { fov: 40 }); // van + wholesaler
+const S10 = (f: number) => dolly([9.0, 1.7, 10.5], [9.6, 1.1, 6.0], pushK(f, 1111, 0.0012), { fov: 40 }); // looking north at the window: van edge + wholesaler + window
+const S11 = (f: number) => dolly([-5.0, 1.8, 6.0], [-10.5, 1.4, 6.0], pushK(f, 1221, 0.0012), { fov: 40 }); // warehouse door, straight-on
+const S12a = (f: number) => dolly([5.8, 1.6, 4.8], [3.2, 1.1, 1.6], 1, { fov: 40 }); // van + wholesaler
 const S12b = (f: number) => dolly([1.0, 1.55, 4.0], [0.1, 1.2, -0.6], pushK(f, 1333, 0.0015), { fov: 40 }); // glide to the clerk at the door
-const S13 = (f: number) => dolly([0.2, 2.3, -7.4], [0.2, 1.0, -11.2], pushK(f, 1367, 0.001), { fov: 42 }); // contrast at counter, high over the machines
+const S13 = (f: number) => dolly([0.2, 2.5, -6.8], [0.2, 1.0, -11.2], pushK(f, 1367, 0.001), { fov: 46 }); // contrast at counter, high + wide for three figures
 const S14 = (f: number) => { const u = (f - 1464) / 155; return { pos: [lerp(0, 1.5, u), 38, 26] as V3, look: [0, 0, 5] as V3, fov: 46, roll: 0 }; }; // aerial drift, steeper: less occlusion by the south buildings
 const S15 = (f: number) => dolly([0.7, 1.6, 9.8], [0, 1.2, 4.5], pushK(f, 1619, 0.0012), { fov: 40 }); // CTA push-in, pulled back for the trio
 
@@ -204,7 +201,7 @@ const CAMS: Record<number, Key[]> = {
   9: [{ f: 1029, s: S9 }],
   10: [{ f: 1111, s: S10 }],
   11: [{ f: 1221, s: S11 }],
-  12: [{ f: 1299, s: S12a }, { f: 1299, dur: 68, s: S12b }],
+  12: [{ f: 1299, s: S12a }, { f: 1329, dur: 10, s: S12b }], // hold van 30f, whip-pan to the door, hold
   13: [{ f: 1367, s: S13 }],
   14: [{ f: 1464, s: S14 }],
   15: [{ f: 1619, s: S15 }],
