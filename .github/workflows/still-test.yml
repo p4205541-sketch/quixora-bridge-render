@@ -1,0 +1,39 @@
+name: Still Test
+on:
+  workflow_dispatch:
+    inputs:
+      composition:
+        description: "Composition id"
+        required: true
+        default: "FlyingThunderShort"
+        type: string
+      frame:
+        description: "Frame number"
+        required: true
+        default: "300"
+        type: string
+      scale:
+        description: "Render scale (0.25 = quarter size)"
+        required: true
+        default: "0.25"
+        type: string
+      props:
+        description: "Props JSON string"
+        required: false
+        default: '{"post":{"composer":false}}'
+        type: string
+jobs:
+  still:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx remotion still src/index.ts ${{ inputs.composition }} out/still.png --frame=${{ inputs.frame }} --scale=${{ inputs.scale }} --browser-executable=$(which google-chrome) --gl=swangle --chromium-flags='{"enable-unsafe-swiftshader":true}' --timeout=300000 --props='${{ inputs.props }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: still-test
+          path: out/still.png
