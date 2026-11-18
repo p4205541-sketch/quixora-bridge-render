@@ -1,10 +1,10 @@
-name: render-still-test
+name: render-video-test
 
 on:
   workflow_dispatch:
 
 jobs:
-  still:
+  video:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Render still (frame 100, quarter scale)
+      - name: Render BridgeTest video (30 frames, quarter scale)
         run: |
-          npx remotion still src/index.ts BridgeShort out/still.png --frame=100 --scale=0.25 --browser-executable=$(which google-chrome) --gl=swangle --chromium-flags='{"enable-unsafe-swiftshader":true}' --timeout=300000 --props='{"post":{"composer":false}}'
+          npx remotion render src/index.ts BridgeTest out/bridgetest.mp4 --scale=0.25 --browser-executable=$(which google-chrome) --gl=swangle --chromium-flags='{\"enable-unsafe-swiftshader\":true}' --timeout=300000 --props='{\"post\":{\"composer\":false}}'
           ls -la out/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: still-test
-          path: out/still.png
+          name: bridgetest
+          path: out/bridgetest.mp4
