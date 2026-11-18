@@ -136,7 +136,7 @@ export const boxAt = (id: number, f: number): { p: V3; vis: boolean } => {
 };
 /** van centre + yaw per shot (visible shots 10-12) */
 export const vanAt = (id: number, f: number): { p: V3; yaw: number; vis: boolean } => {
-  if (id === 10) return { p: [8.0, 0, 5.2], yaw: 0, vis: true }; // parked north along the wall: the carry happens south of it, in the open
+  if (id === 10) return { p: [8.0, 0, 2.5], yaw: 0, vis: true }; // parked well north: the carry zone stays clear, the van reads in S12
   if (id === 11) return { p: [0, 0, 0], yaw: 0, vis: false }; // van stays out of the warehouse frame (9:16 has no room for van + door)
 if (id === 12) return { p: [3.2, 0, 1.6], yaw: 0, vis: true }; // nose toward the hall door, read in the first half of the shot
   return { p: [0, 0, 0], yaw: 0, vis: false };
