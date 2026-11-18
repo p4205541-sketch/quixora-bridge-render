@@ -350,10 +350,10 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 1: break; // macro card: world carries it
     case 2: {
       const u = smooth((f - 143) / 59);
-      figureT(cam, out, { who: "hero", x: lerp(-5, 3, u), y: 0, z: 10.5, pose: gait(walkPhase(t * 1.2), 55, 55, 4), expr: "hopeful", seed: 1, extras: { bucket: true } }, t);
-      figureT(cam, out, { who: "regular", x: lerp(-2, 6, u), y: 0, z: 9.8, pose: gait(walkPhase(t * 1.2 + 0.3), 55, 55, 4), expr: "grin", seed: 2, extras: { bucketFull: true } }, t);
-      figureT(cam, out, { who: "playerA", x: lerp(-7, 1, u), y: 0, z: 10.0, pose: gait(walkPhase(t * 1.1 + 0.6), 50, 50, 4), expr: "happy", seed: 11, extras: { bucket: true } }, t);
-      figureT(cam, out, { who: "playerB", x: lerp(3, 8, u), y: 0, z: 9.2, pose: gait(walkPhase(t * 1.15 + 0.1), 50, 50, 4), expr: "plain", seed: 12, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "hero", x: lerp(-2, 2, u), y: 0, z: 7.5, pose: gait(walkPhase(t * 1.2), 55, 55, 4), expr: "hopeful", seed: 1, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "regular", x: lerp(-4, 1, u), y: 0, z: 6.8, pose: gait(walkPhase(t * 1.2 + 0.3), 55, 55, 4), expr: "grin", seed: 2, extras: { bucketFull: true } }, t);
+      figureT(cam, out, { who: "playerA", x: lerp(-6, -2, u), y: 0, z: 8.0, pose: gait(walkPhase(t * 1.1 + 0.6), 50, 50, 4), expr: "happy", seed: 11, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "playerB", x: lerp(1, 5, u), y: 0, z: 6.2, pose: gait(walkPhase(t * 1.15 + 0.1), 50, 50, 4), expr: "plain", seed: 12, extras: { bucket: true } }, t);
       break;
     }
     case 3: {
@@ -364,9 +364,9 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       break;
     }
     case 4: {
-      const walkers: [CharName, number, number, number][] = [["hero", -4, 4, 1], ["regular", 2, 8, 2], ["playerA", -1, 11, 11], ["playerB", 5, 5, 12], ["playerC", -6, 9, 13]];
+      const walkers: [CharName, number, number, number][] = [["hero", -1.2, 4.0, 1], ["regular", 1.0, 4.6, 2], ["playerA", -2.2, 5.2, 11], ["playerB", 2.2, 3.8, 12], ["playerC", 0.2, 5.8, 13]];
       walkers.forEach(([who, x0, z, seed]) => {
-        const x = x0 + Math.sin(t * 0.4 + seed) * 1.2;
+        const x = x0 + Math.sin(t * 0.4 + seed) * 0.8;
         figureT(cam, out, { who, x, y: 0, z, pose: gait(walkPhase(t * 0.9 + seed * 0.2), 50, 45, 3), expr: "plain", seed, extras: { bucket: true } }, t);
       });
       break;
@@ -380,7 +380,7 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     case 6: {
       const slump = smooth((f - 620) / 30);
       const shake: ExprName = Math.floor(f / 8) % 2 === 0 ? "politeL" : "politeR";
-      figureT(cam, out, { who: "hero", x: -0.3, y: 0, z: -10.2, pose: blendPose(POSES.stand, POSES.slump, slump), expr: "confused", seed: 1, extras: { bucket: true } }, t);
+      figureT(cam, out, { who: "hero", x: -0.15, y: 0, z: -10.2, pose: blendPose(POSES.stand, POSES.slump, slump), expr: "confused", seed: 1, extras: { bucket: true } }, t);
       figureT(cam, out, { who: "clerk", x: 0.3, y: 0, z: -11.9, pose: POSES.stand, expr: shake, seed: 3, extras: { clipboard: true } }, t);
       break;
     }
@@ -394,28 +394,28 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
       const walk = smooth((f - 880) / 80);
       const hx = lerp(-0.2, 8.4, walk), hz = lerp(-0.5, 7.4, walk);
       const stepBack = smooth((f - 960) / 40);
-      const rx = lerp(lerp(1.6, 9.2, walk), 8.6, stepBack), rz = lerp(lerp(-0.3, 6.0, walk), 4.8, stepBack);
+      const rx = lerp(lerp(1.6, 9.2, walk), 8.6, stepBack), rz = lerp(lerp(0.6, 6.0, walk), 4.8, stepBack);
       const moving = walk < 1;
       const rMoving = moving || stepBack < 1;
       figureT(cam, out, { who: "hero", x: hx, y: 0, z: hz, pose: moving ? gait(walkPhase(t * 1.3), 60, 60, 5) : POSES.stand, expr: "watchful", seed: 1, extras: { bucket: true } }, t);
       const slide = smooth((f - 956) / 20);
       figureT(cam, out, { who: "regular", x: rx, y: 0, z: rz, pose: rMoving && stepBack < 0.05 ? gait(walkPhase(t * 1.3 + 0.4), 60, 60, 5) : stepBack > 0.05 ? blendPose(POSES.slideArm, POSES.stand, stepBack) : blendPose(POSES.stand, POSES.slideArm, slide), expr: "grin", seed: 2 }, t);
-      figureT(cam, out, { who: "windowClerk", x: 10.7, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
+      figureT(cam, out, { who: "windowClerk", x: 10.15, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
     }
     case 9: {
-      figureT(cam, out, { who: "windowClerk", x: 10.7, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
+      figureT(cam, out, { who: "windowClerk", x: 10.15, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
     }
     case 10: {
       // wholesaler: van -> window (1111-1140), carry box back (1140-1190), load + stand
       const toWin = smooth((f - 1111) / 29), back = smooth((f - 1140) / 50);
       let wx: number, wz: number, wpose: PoseDef, wex: Extras = {};
-      if (toWin < 1) { wx = lerp(8.4, 9.4, toWin); wz = lerp(6.7, 6.2, toWin); wpose = gait(walkPhase(t * 1.1), 55, 50, 4); }
-      else if (back < 1) { wx = lerp(9.4, 8.4, back); wz = lerp(6.2, 6.7, back); wpose = POSES.carryBox; wex = { box: true }; }
-      else { wx = 8.4; wz = 6.7; wpose = POSES.stand; wex = { briefcase: true }; }
+      if (toWin < 1) { wx = lerp(9.1, 9.4, toWin); wz = lerp(6.6, 6.2, toWin); wpose = gait(walkPhase(t * 1.1), 55, 50, 4); }
+      else if (back < 1) { wx = lerp(9.4, 9.1, back); wz = lerp(6.2, 6.6, back); wpose = POSES.carryBox; wex = { box: true }; }
+      else { wx = 9.1; wz = 6.6; wpose = POSES.stand; wex = { briefcase: true }; }
       figureT(cam, out, { who: "wholesaler", x: wx, y: 0, z: wz, pose: wpose, expr: "stern", seed: 5, extras: wex }, t);
-      figureT(cam, out, { who: "windowClerk", x: 10.7, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
+      figureT(cam, out, { who: "windowClerk", x: 10.15, y: 0, z: 6.0, pose: POSES.stand, expr: "stern", seed: 4 }, t);
       break;
     }
     case 11: {
@@ -425,15 +425,15 @@ export const stagePachinko = (id: number, t: number, f: number, cam: CamInfo): S
     }
     case 12: {
       figureT(cam, out, { who: "clerk", x: 0.1, y: 0, z: -0.6, pose: POSES.holdUp, expr: "polite", seed: 3 }, t);
-      figureT(cam, out, { who: "wholesaler", x: 5.2, y: 0, z: 2.2, pose: POSES.stand, expr: "stern", seed: 5, extras: { briefcase: true } }, t);
+      figureT(cam, out, { who: "wholesaler", x: 4.3, y: 0, z: 2.4, pose: POSES.stand, expr: "stern", seed: 5, extras: { briefcase: true } }, t);
       figureT(cam, out, { who: "hero", x: -0.6, y: 0, z: -0.4, pose: POSES.stand, expr: "watchful", seed: 1 }, t);
       break;
     }
     case 13: {
       const up = smooth((f - 1400) / 30);
-      figureT(cam, out, { who: "playerA", x: 0.8, y: 0, z: -10.5, pose: blendPose(POSES.stand, POSES.holdUp, up), expr: "happy", seed: 11 }, t);
-      figureT(cam, out, { who: "clerk", x: 0.3, y: 0, z: -11.9, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
-      figureT(cam, out, { who: "hero", x: -0.5, y: 0, z: -10.7, pose: POSES.stand, expr: "smile", seed: 1, swaps: [46.0] }, t);
+      figureT(cam, out, { who: "playerA", x: 0.55, y: 0, z: -10.5, pose: blendPose(POSES.stand, POSES.holdUp, up), expr: "happy", seed: 11 }, t);
+      figureT(cam, out, { who: "clerk", x: 0.1, y: 0, z: -11.9, pose: POSES.point, expr: "polite", seed: 3, extras: { clipboard: true } }, t);
+      figureT(cam, out, { who: "hero", x: -0.35, y: 0, z: -10.7, pose: POSES.stand, expr: "smile", seed: 1, swaps: [46.0] }, t);
       break;
     }
     case 14: break; // aerial: world carries the loop
