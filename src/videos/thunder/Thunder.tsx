@@ -1,4 +1,4 @@
-// "Why Samurai Never Touched Quiet Bombs": the first Quixora story on the 3D stack.
+// "Why Samurai Never Touched Quiet Bombs": the first story on the 3D stack.
 // Defender-side tetsuhau story (V1 script/characters), one persistent night-camp world
 // re-lit to dawn. NO post chain: the EffectComposer outputs zero pixels under SwiftShader
 // (proven in every configuration), so this composition has no composer code path at all —
