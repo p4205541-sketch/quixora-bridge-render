@@ -28,7 +28,7 @@ jobs:
 
       - name: Render BridgeTest video (30 frames, quarter scale)
         run: |
-          npx remotion render src/index.ts BridgeTest out/bridgetest.mp4 --scale=0.25 --browser-executable=$(which google-chrome) --gl=swangle --chromium-flags='{\"enable-unsafe-swiftshader\":true}' --timeout=300000 --props='{\"post\":{\"composer\":false}}'
+          npx remotion render src/index.ts BridgeTest out/bridgetest.mp4 --scale=0.25 --browser-executable=$(which google-chrome) --gl=swangle --chromium-flags='{"enable-unsafe-swiftshader":true}' --timeout=300000 --props='{"post":{"composer":false}}'
           ls -la out/
 
       - uses: actions/upload-artifact@v4
