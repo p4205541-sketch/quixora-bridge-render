@@ -252,6 +252,13 @@ export class BurglarWorld {
     doorPanel.position.set(-0.45, 1.1, 0); doorPanel.castShadow = true; this.door.add(doorPanel);
     const knob = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), lam("bgBrass", () => ({ color: "#d9a441" })));
     knob.position.set(-0.78, 1.05, 0.07); this.door.add(knob);
+    // visible hinge plates on the door panel's hinge edge (local x=0 = the hinge axis) — without these the
+    // ECU shots (1, 9) had nothing to show: the door was a plain panel. They swing with the door group.
+    const hingeMat = lam("bgHinge", () => ({ color: "#2b2b2e" }));
+    for (const hy of [0.6, 1.5]) {
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.28, 0.12), hingeMat);
+      plate.position.set(0, hy, 0); this.door.add(plate);
+    }
     this.door.position.set(0.45, 0, 0); // hinge at x = +0.45
     R.add(this.door);
     // door glass peephole (small warm window in the door)
@@ -269,7 +276,7 @@ export class BurglarWorld {
     }
     // house number plates (diegetic text props; plate 16 sits just outside the front wall face z=-0.15)
     const plate16 = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.32), lam("bgPlate16", () => ({ map: plateTex("16") })));
-    plate16.position.set(0.85, 1.5, -0.16); plate16.rotation.y = Math.PI; R.add(plate16);
+    plate16.position.set(-0.6, 1.5, -0.16); plate16.rotation.y = Math.PI; R.add(plate16);
     // porch light beside the door (warm at night)
     const porch = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), new THREE.MeshBasicMaterial({ color: "#ffd9a0" }));
     porch.position.set(-0.85, 2.4, -0.2); R.add(porch);
@@ -283,7 +290,10 @@ export class BurglarWorld {
     prop(b, kit, "bookcaseOpen", -3.8, 0, 4.6, 1.2, Math.PI / 2);
     prop(b, kit, "cabinetTelevision", 1.6, 0, 1.2, 1.2, -Math.PI / 2);
     prop(b, kit, "televisionModern", 1.6, 0.75, 1.2, 1.0, -Math.PI / 2);
-    prop(b, kit, "rugRectangle", -1.5, 0.03, 2.6, 2.2, 0);
+    // Rug: prop() scales by HEIGHT, and this rug is a flat 0.01 m slab — h=2.2 scaled it 220x (345 m wide,
+    // 2.2 m thick) and it swallowed the whole house: shots 3/4/5/10 rendered as a flat mauve field, the figures
+    // hidden inside it. h=0.022 gives scale 2.2x and a normal 3.45 x 2.02 m rug under the coffee table.
+    prop(b, kit, "rugRectangle", -1.5, 0.03, 2.6, 0.022, 0);
     prop(b, kit, "table", TABLE_AT[0], 0, TABLE_AT[2], 1.4, 0); // the wobbly kitchen table
     prop(b, kit, "chair", 3.4, 0, 2.4, 1.0, Math.PI / 2);
     prop(b, kit, "chair", 5.0, 0, 2.4, 1.0, -Math.PI / 2);
