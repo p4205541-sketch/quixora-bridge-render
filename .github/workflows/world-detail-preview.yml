@@ -26,6 +26,8 @@ jobs:
         run: npm run typecheck
       - name: Validate world detail upgrades and story preservation
         run: npm run test:world
+      - name: Validate bump material support and post defaults
+        run: npm run test:bump
       - name: Validate reusable world blueprint and audio profile
         run: npm run test:blueprint
       - name: Validate camera continuity data
