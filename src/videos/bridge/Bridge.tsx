@@ -24,7 +24,7 @@ export const BRIDGE_FRAMES = TOTAL;
 
 /** A/B switches for test stills only (Remotion inputProps `{ post: { ink: false, ... } }`); everything is on by default. */
 type PostToggles = { ink: boolean; lens: boolean; pre: boolean; bloom: boolean; grade: boolean; grain: boolean; composer: boolean; fbtype: "half" | "byte"; msaa: number; depth: boolean };
-const toggles = (): PostToggles => ({ ink: true, lens: true, pre: true, bloom: true, grade: true, grain: false, composer: true, fbtype: "half", msaa: 4, depth: false, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
+const toggles = (): PostToggles => ({ ink: true, lens: false, pre: false, bloom: true, grade: true, grain: false, composer: true, fbtype: "half", msaa: 4, depth: false, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
 
 /** Bloom for emissive sources only (depth.md 6.4). Its MIP chain always starts at 540x960 (half of 1080x1920),
  *  whatever the output size, so the glow keeps the same size relative to the frame (e-fold ~30 px at 1080p,
