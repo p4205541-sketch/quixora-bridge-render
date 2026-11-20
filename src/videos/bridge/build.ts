@@ -4,7 +4,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { D0 } from "./story";
-import { brick, rng, ctex, rep, facadeHD, roofHD, stoneHD } from "./paint";
+import { brick, rng, ctex, rep, facadeHD, roofHD, stoneHD, heightFromTexture } from "./paint";
 import { twoTone } from "./shade";
 
 export type Kit = Record<string, THREE.Object3D>;
@@ -486,7 +486,10 @@ const STYLES: Style[] = [
   { wall: "#e2c49a", shutter: "#8c3b4a", roof: "#c9775a" },              // warm sandstone
   { wall: "#e3d2b8", shutter: "#2f6a43", roof: "#8f97a8", brick: true },
 ];
-const roofMat = (col: string) => lam("roof" + col, () => ({ map: roofHD(col, col === "#8f97a8"), side: THREE.DoubleSide }));
+const roofMat = (col: string) => {
+  const map = roofHD(col, col === "#8f97a8");
+  return lam("roof" + col, () => ({ map, bumpMap: heightFromTexture(map), bumpScale: 0.075, side: THREE.DoubleSide }));
+};
 
 /** gabled house: front facade (local +z) at width w, depth d, wall height h, ridge along local x (left out if it blocks a shot) */
 export const house = (b: Batch, x: number, z: number, yaw: number, w: number, d: number, h: number, si: number, y = D0) => {
@@ -494,8 +497,10 @@ export const house = (b: Batch, x: number, z: number, yaw: number, w: number, d:
   if (inTheWay(x - hx, x + hx, y, y + h + d * 0.42 + 1.2, z - hz, z + hz)) return;
   const st = STYLES[si % STYLES.length];
   const m = new THREE.Matrix4().makeRotationY(yaw).setPosition(x, y, z);
-  const front = lam(`hf${si}_${w}_${h}`, () => ({ map: facadeHD(`hf${si}_${w}_${h}`, w, h, { ...st, door: true }) }));
-  const side = lam(`hs${si}_${h}`, () => ({ map: facadeHD(`hs${si}_${h}`, 8, h, st) }));
+  const frontMap = facadeHD(`hf${si}_${w}_${h}`, w, h, { ...st, door: true });
+  const sideMap = facadeHD(`hs${si}_${h}`, 8, h, st);
+  const front = lam(`hf${si}_${w}_${h}`, () => ({ map: frontMap, bumpMap: heightFromTexture(frontMap), bumpScale: 0.035 }));
+  const side = lam(`hs${si}_${h}`, () => ({ map: sideMap, bumpMap: heightFromTexture(sideMap), bumpScale: 0.035 }));
   const wall = lam("wall" + st.wall, () => ({ color: st.brick ? "#c8643f" : st.wall }));
   const hw = w / 2, hd = d / 2, rh = d * 0.42, o = 0.35;
   b.add(quad(V(-hw, 0, hd), V(hw, 0, hd), V(hw, h, hd), V(-hw, h, hd)), front, m);
@@ -517,7 +522,10 @@ export const house = (b: Batch, x: number, z: number, yaw: number, w: number, d:
 const UB = new THREE.BoxGeometry(1, 1, 1);
 const trimM = () => lam("trimStone", () => ({ color: "#efe3c8" }));
 const capM = () => lam("chimCap", () => ({ color: "#9a8778" }));
-const plinthM = () => lam("plinthHD", () => ({ map: stoneHD("copeHD") }));
+const plinthM = () => {
+  const map = stoneHD("copeHD");
+  return lam("plinthHD", () => ({ map, bumpMap: heightFromTexture(map), bumpScale: 0.055 }));
+};
 const ub = (b: Batch, mat: THREE.Material, m: THREE.Matrix4, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) =>
   b.add(UB, mat, m.clone().multiply(new THREE.Matrix4().compose(V((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), new THREE.Quaternion(), V(x1 - x0, y1 - y0, z1 - z0))));
 const houseDetail = (b: Batch, m: THREE.Matrix4, w: number, d: number, h: number, rh: number, chx: number) => {
@@ -526,6 +534,24 @@ const houseDetail = (b: Batch, m: THREE.Matrix4, w: number, d: number, h: number
   ub(b, tm, m, -hw - 0.12, hw + 0.12, h - 0.52, h - 0.25, hd, hd + 0.17);                                   // cornice front
   ub(b, tm, m, -hw - 0.12, hw + 0.12, h - 0.52, h - 0.25, -hd - 0.17, -hd);                                 // cornice back
   for (const s of [-1, 1]) ub(b, tm, m, s < 0 ? -hw - 0.17 : hw, s < 0 ? -hw : hw + 0.17, h - 0.52, h - 0.25, -hd - 0.12, hd + 0.12);
+  // Balanced environment-detail pass: visible roof fascia, ridge cap, gutters and rainwater downpipes.
+  // These are merged into the existing static batches, so they add geometry without per-frame draw calls.
+  const fascia = lam("roofFascia", () => ({ color: "#76513b" }));
+  const gutter = lam("roofGutter", () => ({ color: "#59636b" }));
+  const pipe = lam("rainPipe", () => ({ color: "#59636b" }));
+  const ridge = new THREE.CylinderGeometry(0.105, 0.105, w + 2 * 0.35, 8, 1).rotateZ(Math.PI / 2);
+  b.add(ridge, fascia, m.clone().multiply(new THREE.Matrix4().makeTranslation(0, h + rh - 0.03, 0)));
+  for (const sideSign of [-1, 1]) {
+    const eaveZ = sideSign * (hd + 0.35);
+    ub(b, fascia, m, -hw - 0.36, hw + 0.36, h - 0.28, h - 0.08, eaveZ - 0.055, eaveZ + 0.055);
+    const gutterGeo = new THREE.CylinderGeometry(0.055, 0.055, w + 0.5, 8, 1).rotateZ(Math.PI / 2);
+    b.add(gutterGeo, gutter, m.clone().multiply(new THREE.Matrix4().makeTranslation(0, h - 0.04, eaveZ + sideSign * 0.045)));
+    for (const xSign of [-1, 1]) {
+      const px = xSign * (hw - 0.14);
+      const pipeGeo = new THREE.CylinderGeometry(0.045, 0.045, Math.max(1, h - 0.15), 7, 1);
+      b.add(pipeGeo, pipe, m.clone().multiply(new THREE.Matrix4().makeTranslation(px, (h - 0.15) / 2, sideSign * (hd + 0.42))));
+    }
+  }
   // windows: facadeHD puts nWin = floor(width / 2.2) per floor at (i + 0.5) / nWin, sill line fl * 2.8 + 0.9 m
   const wins = (len: number, door: boolean, at: (u: number) => [number, number], out: [number, number]) => {
     const n = Math.max(1, Math.floor(len / 2.2));
@@ -541,6 +567,14 @@ const houseDetail = (b: Batch, m: THREE.Matrix4, w: number, d: number, h: number
       for (const [y0, y1, dep, half] of [[yb - 0.2, yb - 0.08, 0.14, 0.6], [yb + 1.33, yb + 1.43, 0.08, 0.55]] as const) {
         const ax = px - out[1] * half, az = pz + out[0] * half, bx = px + out[1] * half, bz = pz - out[0] * half;
         ub(b, tm, m, Math.min(ax, bx, ax + out[0] * dep), Math.max(ax, bx, ax + out[0] * dep), y0, y1, Math.min(az, bz, az + out[1] * dep), Math.max(az, bz, az + out[1] * dep));
+      }
+      // Extruded side jambs make each painted window read as a recessed 3D opening at medium camera distance.
+      for (const sideSign of [-1, 1]) {
+        const tx = out[1] * sideSign * 0.53, tz = -out[0] * sideSign * 0.53;
+        const cx = px + tx + out[0] * 0.055, cz = pz + tz + out[1] * 0.055;
+        const txw = Math.abs(out[1]) * 0.085 + Math.abs(out[0]) * 0.12;
+        const tzw = Math.abs(out[0]) * 0.085 + Math.abs(out[1]) * 0.12;
+        ub(b, tm, m, cx - txw / 2, cx + txw / 2, yb - 0.2, yb + 1.43, cz - tzw / 2, cz + tzw / 2);
       }
     }
   };
