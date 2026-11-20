@@ -283,7 +283,7 @@ export class BurglarWorld {
 
     // ---- interior furniture (Kenney GLBs) ----
     prop(b, kit, "loungeSofa", COUCH_AT[0], 0, COUCH_AT[2], 1.6, Math.PI / 2); // couch faces east (+x)
-    prop(b, kit, "tableCoffee", -0.5, 0, 2.6, 1.0, 0); // coffee table (toolbox sits here in shot 14)
+    prop(b, kit, "tableCoffee", -0.5, 0, 2.6, 0.5, 0); // coffee table (toolbox sits here in shot 14) — GLB H=0.23, so h=0.5 gives scale 2.17x, a normal 1.43 m x 0.5 m table; h=1.0 made it 1.0 m tall and 2.9 m wide, blocking the figures in shots 4/14/15 and burying the toolbox (TOOLBOX_AT assumes a 0.5 m tabletop)
     prop(b, kit, "lampRoundFloor", -3.6, 0, 3.8, 1.2, 0);
     prop(b, kit, "sideTable", -3.6, 0, 0.8, 1.0, 0);
     prop(b, kit, "lampRoundTable", -3.6, 0.62, 0.8, 1.0, 0);
@@ -294,7 +294,7 @@ export class BurglarWorld {
     // 2.2 m thick) and it swallowed the whole house: shots 3/4/5/10 rendered as a flat mauve field, the figures
     // hidden inside it. h=0.022 gives scale 2.2x and a normal 3.45 x 2.02 m rug under the coffee table.
     prop(b, kit, "rugRectangle", -1.5, 0.03, 2.6, 0.022, 0);
-    prop(b, kit, "table", TABLE_AT[0], 0, TABLE_AT[2], 1.4, 0); // the wobbly kitchen table
+    prop(b, kit, "table", TABLE_AT[0], 0, TABLE_AT[2], 0.75, 0); // the wobbly kitchen table — GLB H=0.33, so h=0.75 gives scale 2.27x, a normal 1.9 m x 0.75 m dining table; h=1.4 made it 1.4 m tall and 3.6 m wide, hiding the dad in shot 5 and putting the tabletop a metre above the mom's reachDown hand
     prop(b, kit, "chair", 3.4, 0, 2.4, 1.0, Math.PI / 2);
     prop(b, kit, "chair", 5.0, 0, 2.4, 1.0, -Math.PI / 2);
     prop(b, kit, "kitchenFridge", 5.5, 0, 0.4, 1.2, Math.PI);
