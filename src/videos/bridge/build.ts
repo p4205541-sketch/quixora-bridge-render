@@ -22,19 +22,7 @@ export const lam = (key: string, make: () => THREE.MeshLambertMaterialParameters
       const c = twoTone(new THREE.MeshPhongMaterial({ color: "#7a8490", specular: "#6c727b", shininess: 30 }));
       CHAIN_MATS.add(c);
       m = c;
-    } else {
-      const params = make();
-      // Bump-bearing materials use Phong so the perturbed normal also modulates a soft
-      // specular response; Lambert stays for the rest, keeping the established two-tone
-      // shader on both. (Note: Lambert DOES implement bump mapping in three 0.187 —
-      // meshlambert includes normal_fragment_maps and USE_BUMPMAP fires on Lambert —
-      // so the Phong choice here is for the specular channel, not because Lambert lacks bump.)
-      const hasBump = !!params.bumpMap;
-      const material = hasBump
-        ? new THREE.MeshPhongMaterial({ ...params, specular: new THREE.Color("#34302a"), shininess: 12 })
-        : new THREE.MeshLambertMaterial(params);
-      m = twoTone(material);
-    }
+    } else m = twoTone(new THREE.MeshLambertMaterial(make()));
     mats.set(key, m);
   }
   return m;
