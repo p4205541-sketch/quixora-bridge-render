@@ -287,8 +287,8 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
       break;
     }
     case 5: { // kitchen: table steady, mom's coffee doesn't spill (both on the north side of the table, on the camera axis)
-      mom(3.4, 0, 1.4, POSES.reachDown, "calm");
-      dad(3.9, 0, 2.2, POSES.stand, "confused", { swaps: [10.0] });
+      mom(3.13, 0, 1.82, POSES.reachDown, "calm"); // north of the table's west end, at its northwest corner (the (3.4, 1.4) spot put her directly behind the dad on the S5 sightline — he hid her entirely)
+      dad(3.95, 0, 1.55, POSES.stand, "confused", { swaps: [10.0] }); // north of the table's east end (the (3.9, 2.2) spot put him on the same sightline as the mom — his card covered her)
       break;
     }
     case 6: { // pan: painting straight -> bulb steady; mom points at the painting, dad walks to the bulb
@@ -331,7 +331,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     }
     case 14: { // dad tapes the note to the toolbox
       dad(-0.4, 0, 2.2, POSES.tapeNote, "amused"); // on the camera axis (the old spot put his card's edge out of frame at the dolly's end)
-      mom(-0.9, 0, 2.65, POSES.stand, "relieved"); // west of the toolbox — the (-1.5, 3.0) spot put her off the left edge, and (-1.2, 2.8) still left her L edge out
+      mom(0.5, 0, 2.6, POSES.stand, "relieved"); // east of the coffee table, in open floor, watching the dad (the (-0.9, 2.65) spot put her directly in front of him on the S14 sightline — her card hid him entirely)
       break;
     }
     case 15: { // handyman smiles with the note — hard stop
