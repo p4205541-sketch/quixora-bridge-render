@@ -279,7 +279,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     case 3: { // morning: dad pushes the door — it swings silently
       const u = smooth((f - 141) / 24);
       dad(0.8, 0, 1.2, blendPose(POSES.stand, POSES.reachDown, u), "confused", { swaps: [5.0] });
-      mom(1.2, 0, 1.8, POSES.stand, "puzzled"); // by the door, on the camera axis (the old spot at (2.5, 3.5) was 0.7m from the lens)
+      mom(1.0, 0, 1.65, POSES.stand, "puzzled"); // by the door, on the camera axis (the old spot at (2.5, 3.5) was 0.7m from the lens; the (1.2, 1.8) spot put her card's edge out of the hallway camera's frame)
       break;
     }
     case 4: { // dad crouches at the hinge: six years of squeak, gone
@@ -293,7 +293,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     }
     case 6: { // pan: painting straight -> bulb steady; mom points at the painting, dad walks to the bulb
       const u = smooth((f - 396) / 169);
-      mom(-0.8, 0, 6.2, POSES.pointAt, "puzzled"); // by the painting, on the back wall
+      mom(1.5, 0, 6.2, POSES.pointAt, "puzzled"); // east along the back wall — 5.0 m from the camera (the old spot at (-0.8, 6.2) was 2.7 m away and her head filled the frame); her pointAt arm aims screen-right, at the painting
       dad(lerp(2.0, 5.2, u), 0, 6.2, POSES.leanIn, "confused"); // walks east along the back wall
       break;
     }
@@ -301,8 +301,8 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
       dad(-1.9, 0, 3.4, POSES.leanIn, "worried", { swaps: [20.0] }); // on the camera axis (the old spot was 0.56m off-axis)
       break;
     }
-    case 8: { // priest blesses the rooms (tight group on the camera axis — the old 3m-wide line didn't fit the 24 deg frame)
-      priest(0, 0, 3.0, POSES.bless, "serene");
+    case 8: { // priest blesses the rooms (priest at (-0.5, 3.5) so the three figures fit the 24 deg frame — the old spot (0, 3.0) put him off the left edge)
+      priest(-0.5, 0, 3.5, POSES.bless, "serene");
       dad(-1.0, 0, 4.0, POSES.stand, "worried");
       mom(-0.3, 0, 4.3, POSES.stand, "worried");
       break;
@@ -331,13 +331,13 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     }
     case 14: { // dad tapes the note to the toolbox
       dad(-0.4, 0, 2.2, POSES.tapeNote, "amused"); // on the camera axis (the old spot put his card's edge out of frame at the dolly's end)
-      mom(-1.5, 0, 3.0, POSES.stand, "relieved"); // west of the toolbox, in frame (the old spot was behind the camera)
+      mom(-0.9, 0, 2.65, POSES.stand, "relieved"); // west of the toolbox — the (-1.5, 3.0) spot put her off the left edge, and (-1.2, 2.8) still left her L edge out
       break;
     }
     case 15: { // handyman smiles with the note — hard stop
       handyman(-1.2, 0, 3.0, POSES.holdNote, "grinning", { swaps: [52.5] });
       dad(-2.0, 0, 3.8, POSES.stand, "amused"); // on the camera axis (the old spot was behind the camera's view)
-      mom(-0.4, 0, 2.2, POSES.stand, "relieved");
+      mom(-1.7, 0, 2.5, POSES.stand, "relieved"); // northwest of the handyman — screen-right, in frame (the (0.8, 3.5) spot was screen-left and off-frame; (-2.6, 2.2) was too far northwest and off the right edge)
       break;
     }
   }
