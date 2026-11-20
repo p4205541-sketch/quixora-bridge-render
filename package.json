@@ -28,7 +28,8 @@
     "test:camera": "node scripts/test-camera-continuity.cjs",
     "typecheck": "tsc --noEmit",
     "test:world": "node scripts/test-world-upgrade.cjs",
-    "test:blueprint": "node scripts/validate-world-blueprint.cjs"
+    "test:blueprint": "node scripts/validate-world-blueprint.cjs",
+    "test:bump": "node scripts/test-bump-materials.cjs"
   },
   "version": "1.0.0"
 }
