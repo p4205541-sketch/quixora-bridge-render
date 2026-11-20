@@ -277,7 +277,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
       break;
     }
     case 3: { // morning: dad pushes the door — it swings silently
-      const u = smooth((f - 150) / 30);
+      const u = smooth((f - 141) / 24);
       dad(0.8, 0, 1.2, blendPose(POSES.stand, POSES.reachDown, u), "confused", { swaps: [5.0] });
       mom(1.2, 0, 1.8, POSES.stand, "puzzled"); // by the door, on the camera axis (the old spot at (2.5, 3.5) was 0.7m from the lens)
       break;
@@ -292,7 +292,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
       break;
     }
     case 6: { // pan: painting straight -> bulb steady; mom points at the painting, dad walks to the bulb
-      const u = smooth((f - 405) / 180);
+      const u = smooth((f - 396) / 169);
       mom(-0.8, 0, 6.2, POSES.pointAt, "puzzled"); // by the painting, on the back wall
       dad(lerp(2.0, 5.2, u), 0, 6.2, POSES.leanIn, "confused"); // walks east along the back wall
       break;
