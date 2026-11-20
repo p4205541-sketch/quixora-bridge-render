@@ -140,11 +140,11 @@ const dolly = (pos: V3, look: V3, k: number, rest: Partial<Cam> = {}): Shot =>
 const S1 = (f: number) => dolly([2.5, 2.4, -6.5], [0, 0.7, 0], pushK(f, 0, 0.004), { fov: 44 }); // wide street, lid lift (south side, looking north)
 const S2 = (f: number) => dolly([-2.5, 2.2, -6.5], [0, 0.9, 0], pushK(f, 144, 0.003), { fov: 40 }); // pedestrians over the hole
 const S3 = (f: number) => dolly([-14, 6, 0.5], [10, 0, 0], pullK(f, 201, 0.002), { fov: 46 }); // elevated wide down the road, manholes everywhere
-const S4 = (f: number) => dolly([-4.5, 1.6, -4.5], [-6, 0.6, -1.5], pushK(f, 312, 0.003), { fov: 38 }); // steam vent CU (south side)
+const S4 = (f: number) => dolly([-3.5, 1.8, -7.5], [-6, 0.6, -1.5], pushK(f, 312, 0.003), { fov: 38 }); // steam vent (pulled back: Milo's card fits at fd ~5-6 m)
 const S5 = (f: number) => dolly([3.5, 2.0, -2.5], [1.8, 1.0, 4.5], pushK(f, 402, 0.003), { fov: 40 }); // Vera walks in
 const S6 = (f: number) => dolly([0.5, 2.3, -1.0], [4, 0.9, 5.2], pushK(f, 445, 0.002), { fov: 42 }); // Vera + square lid at rig
 const S7 = (f: number) => dolly([1.0, 2.1, -0.5], [4, 0.7, 5.2], pushK(f, 540, 0.002), { fov: 40 }); // Milo turns the lid
-const S8 = (f: number) => dolly([2.0, 1.9, 1.0], [4, 0.55, 5.2], pushK(f, 618, 0.002), { fov: 38 }); // diagonal CU
+const S8 = (f: number) => dolly([0.5, 2.1, -0.5], [4, 0.55, 5.2], pushK(f, 618, 0.002), { fov: 40 }); // diagonal CU (pulled back: Milo fully in frame)
 const S9 = (f: number) => dolly([2.2, 2.0, 0.8], [4, 0.5, 5.2], pushK(f, 731, 0.0015), { fov: 40 }); // the drop
 const S10 = (f: number) => dolly([1.2, 2.1, -0.2], [4.6, 0.7, 5.2], pushK(f, 812, 0.002), { fov: 40 }); // round lid turns
 const S11 = (f: number) => dolly([1.6, 2.0, 0.2], [4.4, 0.6, 5.2], pushK(f, 898, 0.002), { fov: 38 }); // round lid stays
@@ -158,9 +158,9 @@ const S13 = (f: number) => { // rolling into place (continues the S12 track)
   const lx = lerp(1.8, 0.15, u), lz = lerp(2.2, 0.15, u);
   return { pos: [lerp(6.3, 4.65, u), 2.0, lerp(-2.3, -4.35, u)] as V3, look: [lx, 0.4, lz] as V3, fov: 40, roll: 0 };
 };
-const S14 = (f: number) => dolly([4.8, 2.2, -2.0], [0, 0.3, 0], pushK(f, 1120, 0.002), { fov: 40 }); // drops in, fits
+const S14 = (f: number) => dolly([7.0, 2.8, -3.0], [0, 0.3, 0], pushK(f, 1120, 0.002), { fov: 40 }); // drops in, fits (pulled back: two 1 m cards + hole fit at fd ~5 m)
 const S15 = (f: number) => dolly([-24, 2.1, 4.8], [-29, 0.4, -1.5], pullK(f, 1228, 0.0015), { fov: 40 }); // Nashua corner
-const S16 = (f: number) => dolly([12.5, 2.2, 6.2], [8.5, 0.9, 5.2], pushK(f, 1378, 0.002), { fov: 44 }); // press test (from the east, rig in the background)
+const S16 = (f: number) => dolly([13.5, 2.4, 4.2], [8.5, 0.9, 5.2], pushK(f, 1378, 0.002), { fov: 44 }); // press test (pulled back: Vera no longer frame-filling)
 const S17 = (f: number) => dolly([3.0, 2.2, -3.0], [0, 0.9, 0], pushK(f, 1488, 0.002), { fov: 42 }); // step over, vindicated
 const S18 = (f: number) => dolly([0, 9, 13], [0, 0.5, -2], pullK(f, 1608, 0.0015), { fov: 46 }); // CTA pull-up
 
