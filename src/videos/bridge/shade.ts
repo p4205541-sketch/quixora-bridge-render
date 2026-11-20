@@ -9,7 +9,7 @@ export const TONE = {
   uShadeLift: { value: new THREE.Vector3() }, uLambert: { value: 0.35 }, uSideK: { value: 0.84 }, uTerm: { value: 0.2 },
   uBounce: { value: new THREE.Vector3() }, // warm bounce on shaded faces turned to the camera (golden only; day = 0)
   uSat: { value: 1 }, // world albedo saturation around its luminance (characters are not twoTone, so unaffected)
-  uBumpK: { value: 600 }, // bump-response gain (see TWO_TONE): amplifies ONLY the bump normal's sun-projection delta,
+  uBumpK: { value: 0 }, // bump-response gain (see TWO_TONE): amplifies ONLY the bump normal's sun-projection delta,
   // so bump detail becomes visible without changing the base two-tone look. 0 = previous behaviour exactly.
   uBumpClamp: { value: 0.03 }, // caps the bump delta so pathological spikes (seams, grazing angles) cannot blow out
 };
