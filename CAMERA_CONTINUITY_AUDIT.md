@@ -1,28 +1,42 @@
-# Camera continuity audit — BridgeShort
+# Camera continuity implementation — BridgeShort
 
-This audit is based on `src/videos/bridge/story.ts` and `Bridge.tsx` in the uploaded repository.
+## What changed
 
-## What the current project actually does
+`src/videos/bridge/story.ts` now resolves camera movement from the global frame through `camAt()`:
 
-- The bridge is one reusable Three.js world, but `BridgeShort` mounts separate `ShotView` canvases for the active shot layers.
-- `SHOTS` contains 15 editorial shot ranges across 2,025 frames (30 fps; 67.5 seconds).
-- `layersAt()` only crossfades the shot IDs listed in `XFADE`; other shot boundaries switch directly.
-- `run()` in `story.ts` intentionally jumps immediately whenever a camera key has `cut: true`.
-- The explicit within-shot camera cuts are at frames: **497, 717, 871, 925, 1039, 1062, 1099, 1685, 1770, 1932**.
-- Additional shot-boundary reframes occur at the `SHOTS` start frames. Some are crossfaded, but many are direct cuts.
+- All active render layers use the same frame-global camera pose.
+- Former `cut: true` reframes and shot-boundary camera jumps are routed through eased travel windows.
+- Camera position, optical direction, FOV and roll are interpolated; the optical direction uses spherical interpolation.
+- Longer geographic moves use a raised arc to reduce the chance of passing through the deck or town silhouettes.
+- Existing impact kicks are layered over the travel movement.
 
-## Why I did not silently remove `cut: true`
+The original camera keys and story timings remain in place as the source framings. The transition table is the movement layer between them.
 
-Those camera keys are not merely tiny camera shakes: several move from a close-up to an aerial, from an anchor insert to the river, or from a bank shot to an officer close-up. Replacing every cut with a generic interpolation would move the camera through the 3D world, often through buildings/bridge geometry, and could destroy the framing or reveal areas the scene was never designed to show.
+## Local camera-path test result
 
-Also, a camera-only interpolation cannot remove the shot changes while `BridgeShort` is still rendering two independent canvases for crossfades and resetting shot-specific story time/light/crowd state.
+The automated regression test in `scripts/test-camera-continuity.cjs` transpiles and executes `story.ts`, then samples every frame of the 67.5-second composition (2,025 frames at 30 fps).
 
-## Correct next implementation for a genuine one-take
+- **PASS:** all 2,025 camera poses are finite and have a valid field of view and look direction.
+- **PASS:** no one-frame camera translation exceeds 2.0 world metres.
+- **PASS:** no one-frame optical-axis rotation exceeds 3.5 degrees.
+- Measured maximum translation: **1.751 m/frame**, at frame 1620.
+- Measured maximum optical-axis rotation: **3.013 degrees/frame**, at frame 1041.
 
-1. Replace the per-shot `ShotView` stack with one persistent `ThreeCanvas` and one persistent `World`.
-2. Define one global camera path (position + look target + roll + FOV) sampled continuously over all 2,025 frames.
-3. Keep story events as world-state changes on a single global clock, not per-shot `tau` resets.
-4. Use spline/Bezier path segments with collision checks against the bridge, town and props.
-5. Render a low-resolution camera-path preview first; only then run the full beauty/depth renders.
+Run locally with `npm ci && npm run test:camera`.
 
-**Status:** depth-pass export is being wired into the current architecture. True single-take camera reconstruction is not claimed as fixed by this patch.
+## GitHub Actions validation
+
+The **Bridge Camera Continuity Clips** workflow now runs these checks before rendering:
+
+1. Install the locked dependencies.
+2. Type-check the complete project with `npm run typecheck`.
+3. Run the all-frame camera continuity regression test.
+4. Render five low-resolution clips covering the major transitions.
+
+The workflow artifacts still need visual inspection for framing, occlusion and geometry intersections. The numeric test cannot prove that a camera path is collision-free.
+
+## Scope and remaining visual validation
+
+This is a continuous camera-movement pass, not a literal uninterrupted one-take of every story event. The story still contains editorial state changes (lighting, crowd states, collapsed/rebuilt bridge states) and selected crossfade layers. These are retained to avoid silently changing the story.
+
+A full Remotion render and full project typecheck could not be executed in this environment because dependency installation was blocked by DNS/network resolution (`EAI_AGAIN` while fetching from npm). The all-frame camera-path test, Python compositor syntax check and workflow YAML parsing passed locally. The five rendered clips and final full video remain pending GitHub Actions execution and visual review.
