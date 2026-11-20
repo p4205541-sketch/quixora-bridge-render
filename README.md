@@ -25,9 +25,11 @@ Tune `--focus` (depth threshold), `--blur`, `--bloom`, `--warmth`, `--lift`, and
 
 **Important:** depth and beauty must use identical frame ranges, scale, dimensions and FPS. The compositor checks these and checks frame-count alignment.
 
-## Camera continuity status
+## Camera continuity update
 
-See [`CAMERA_CONTINUITY_AUDIT.md`](CAMERA_CONTINUITY_AUDIT.md). The uploaded story intentionally contains per-shot camera cuts and per-shot timeline resets. A genuine one-take requires a single persistent ThreeCanvas/World and a global camera path; simply deleting `cut: true` would cause unsafe camera fly-throughs and framing failures.
+`story.ts` now routes the camera through eased travel windows at the former hard cuts and shot-boundary reframes. The optical axis is spherical-interpolated, long moves use a raised arc, and impact kicks remain layered on top. See [`CAMERA_CONTINUITY_AUDIT.md`](CAMERA_CONTINUITY_AUDIT.md) for the measured path checks and the remaining story-state limitations.
+
+Before the full render, run **Actions → Bridge Camera Continuity Clips → Run workflow**. It renders five low-resolution clips covering the major camera transitions. Review these clips for framing and geometry intersections before rendering the full 67.5-second video.
 
 ### Fast validation: town frame 200
 
