@@ -361,7 +361,7 @@ export class ManholeWorld {
     R.add(this.pressPiston);
 
     // ---- Nashua triangle covers (0.08 thick, lighter iron + thin light rim so they read on the road) ----
-    for (const [x, z, yaw] of [[-28, -1.8, 0.3], [-29.5, -0.8, 1.1], [-30.5, -2.2, 2.0]] as const) {
+    for (const [x, z, yaw] of [[-28, -1.8, 0.3], [-29.5, -0.8, 1.1], [-30.5, -1.0, 2.0]] as const) {
       const shape = new THREE.Shape();
       shape.moveTo(0, 0.42); shape.lineTo(0.4, -0.3); shape.lineTo(-0.4, -0.3); shape.closePath();
       const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.02, bevelEnabled: false }),
