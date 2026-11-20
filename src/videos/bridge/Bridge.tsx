@@ -6,7 +6,7 @@
 // source; the grade is display-referred, so it comes after tone mapping. Every pixel-sized parameter is specified at
 // 1080x1920 and scaled with the output size, so stills at --scale 0.5 and the 1440x2560 final match.
 // Place changes crossfade by stacking a second canvas for the fade frames; the hook ends on a 4-frame white flash.
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { AbsoluteFill, continueRender, delayRender, getInputProps, useCurrentFrame } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
@@ -48,7 +48,14 @@ const fwd = new THREE.Vector3(), fpt = new THREE.Vector3();
  *  carry no depth info and are hidden by applyDepthPass. Convention matches the depth-studio compositor's default
  *  (near = white, far = black), so no --invert-depth is needed. */
 const DEPTH_MIN = 1, DEPTH_MAX = 150;
+const DEPTH_BACKGROUND = new THREE.Color(0x000000);
 const depthCache = new WeakMap<THREE.Material, THREE.MeshDepthMaterial>();
+/** mesh -> beauty material(s) as seen on its first depth swap. Static world geometry keeps its
+ *  material forever, so without this the swap would wrap the depth material in a new depth
+ *  material every frame (linearDepth(depthMat) is a cache miss: new instance per frame). Fx
+ *  cards get their material reassigned by world.update() each frame (cast.ts Fx.use/bind), so
+ *  the stored source is refreshed whenever the current material is neither the stored source
+ *  nor its depth material. WeakMap: dropped meshes (and their entries) are GC'd. */
 /** Create (or reuse) a linearised depth material for a source material, preserving alpha cut-outs and displacement.
  *  Hardening merged from the ChatGPT-integrated ZIP: shader-patch guard (throws instead of silently keeping the
  *  hyperbolic depth output if three.js changes the output line), alphaMap + displacementMap support, toneMapped
@@ -95,11 +102,33 @@ const linearDepth = (src: THREE.Material): THREE.MeshDepthMaterial => {
   depthCache.set(src, dm);
   return dm;
 };
+const depthSource = new WeakMap<THREE.Mesh, THREE.Material[]>();
+const toDepth = (mats: THREE.Material[]): THREE.MeshDepthMaterial[] => mats.map(linearDepth);
+/** Swap one mesh to its depth material, tracking its beauty source. At useFrame time the
+ *  mesh's material is the current beauty material (world.update() just reassigned it via
+ *  Fx.use/bind in the render body); static meshes still carry last frame's depth material. */
+const swapMeshDepth = (m: THREE.Mesh): boolean => {
+  const curArr = (Array.isArray(m.material) ? m.material : [m.material]) as THREE.Material[];
+  const stored = depthSource.get(m);
+  const setMat = (mats: THREE.Material[]) => { m.material = (Array.isArray(m.material) ? mats : mats[0]) as THREE.Material | THREE.Material[]; };
+  if (!stored) {
+    depthSource.set(m, curArr);
+    setMat(toDepth(curArr));
+    return true;
+  }
+  const storedDepth = toDepth(stored);
+  const sameAs = (a: THREE.Material[], b: THREE.Material[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+  if (sameAs(curArr, storedDepth)) return false; // already depth (static mesh) — leave it
+  if (!sameAs(curArr, stored)) depthSource.set(m, curArr); // Fx reassigned: new beauty source
+  setMat(toDepth(depthSource.get(m)!)); // cache hit for stored sources, fresh depth for new ones
+  return true;
+};
+let lastDepthLog = "";
 const applyDepthPass = (scene: THREE.Scene, renderer: THREE.WebGLRenderer) => {
   // Depth values must stay raw linear: no fog, black background, linear output, no tone mapping. (The depth shader
   // itself has no fog / tone-mapping / colorspace chunks, so these are belt-and-braces for any non-depth pixels.)
   scene.fog = null;
-  scene.background = new THREE.Color(0x000000);
+  scene.background = DEPTH_BACKGROUND;
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.toneMappingExposure = 1;
@@ -113,10 +142,13 @@ const applyDepthPass = (scene: THREE.Scene, renderer: THREE.WebGLRenderer) => {
     if (mats.some((x) => (x as THREE.MeshBasicMaterial).transparent && (x as THREE.MeshBasicMaterial).depthWrite === false)) {
       o.visible = false; hidden++; return; // clouds, smoke, soft fx: no depth info
     }
-    m.material = Array.isArray(m.material) ? mats.map(linearDepth) : linearDepth(m.material);
-    swapped++;
+    // Visibility is re-asserted by world.update() in the render body before this runs (used Fx
+    // visible=true, unused visible=false), so the swap never touches it: a mesh hidden here as
+    // soft in one frame is re-shown by world.update() if it comes back hard in a later frame.
+    if (swapMeshDepth(m)) swapped++;
   });
-  console.log(`[depth] swapped ${swapped} meshes, hid ${hidden} objects`);
+  const msg = `[depth] swapped ${swapped} meshes, hid ${hidden} objects`;
+  if (msg !== lastDepthLog) { lastDepthLog = msg; console.log(msg); }
 };
 
 const useKit = () => {
@@ -132,13 +164,16 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   const world = useMemo(() => new World(kit), [kit]);
   const target = useMemo(() => new THREE.Vector3(), []);
   const on = useMemo(toggles, []);
-  const depthSwapped = useRef(false);
-  // Depth stills only: the world root is attached to the scene on commit, so the material swap must run in the
-  // render loop — a render-body traverse would find an empty scene. Runs once; the loop re-renders after the swap.
-  // VIDEO WARNING: the once-guard is stills-only. For video the swap must run every frame with mesh→source
-  // tracking: Fx.bind()/use() reassign mesh.material mid-video (cast.ts), which would overwrite the depth
-  // material and never be re-swapped. Do not use render-depth-passes.yml for full video until that is fixed.
-  useFrame(() => { if (on.depth && !depthSwapped.current) { depthSwapped.current = true; applyDepthPass(scene, gl); } });
+  // Depth video: the swap runs EVERY frame in useFrame. The render body runs world.update()
+  // before the frame's useFrame callbacks, and world.update() reassigns mesh.material via
+  // Fx.use()/bind() (cast.ts) — so any depth material from the previous frame is overwritten
+  // by a beauty material before each draw. At useFrame time the mesh's material IS the current
+  // beauty material, so map it through linearDepth() again (swapMeshDepth tracks mesh->source,
+  // so static meshes are not re-wrapped). Visibility is re-asserted by world.update() each
+  // frame, so the hide of sprites / lines / points / transparent objects re-runs too. Stills
+  // still work: the first frame's useFrame swap happens before the first draw, exactly as the
+  // old once-guard did.
+  useFrame(() => { if (on.depth) applyDepthPass(scene, gl); });
   const fx = useMemo(() => ({
     ink: new InkPass(scene, camera as THREE.PerspectiveCamera),
     lens: new LensBlur({ maxCoC: 24, nearScale: 1.2 }),
