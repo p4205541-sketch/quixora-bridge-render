@@ -236,7 +236,7 @@ export class ManholeWorld {
     prop(b, kit, "light-square", -35, 0, 4.4, 4.2, 0);
     prop(b, kit, "light-square", 35, 0, -4.4, 4.2, Math.PI);
     for (const x of [-30, 0, 30]) prop(b, kit, "electricity-pole", x, 0, -4.4, 6, 0);
-    prop(b, kit, "dumpster", 14, 0.12, 4.8, 1.3, 0.3);
+    prop(b, kit, "dumpster", 18, 0.12, 4.8, 1.3, 0.3); // east of the press camera (clear of the S16 frame)
     prop(b, kit, "construction-barrier", 1.5, 0.12, 4.0, 0.9, 0.2);
     prop(b, kit, "construction-barrier", 6.5, 0.12, 4.0, 0.9, -0.2);
     prop(b, kit, "construction-cone", 2.5, 0.12, 4.3, 0.5, 0);
@@ -252,7 +252,7 @@ export class ManholeWorld {
     prop(b, kit, "sedan", -12, 0, 2.4, 1.5, 0);
     prop(b, kit, "taxi", 10, 0, -2.4, 1.5, Math.PI);
     prop(b, kit, "van", 20, 0, 2.4, 1.6, 0);
-    prop(b, kit, "delivery", -28, 0, -2.4, 1.8, Math.PI);
+    prop(b, kit, "delivery", -38, 0, -2.4, 1.8, Math.PI); // west of the Nashua corner (clear of the triangle sightline)
 
     // ---- code-built props: traffic lights, hydrant, bins, vent grate ----
     const ironDark = lam("mhIronDark", () => ({ color: "#3a3a40" }));
@@ -316,12 +316,22 @@ export class ManholeWorld {
     shelf.position.set(0.95, 0.42, 0); shelf.castShadow = true; rig.add(shelf);
     rig.position.set(RIG_AT[0], RIG_AT[1], RIG_AT[2]);
     R.add(rig);
-    // square demo lid (animated: turn + drop)
+    // square demo lid (animated: turn + drop) — diagonal ridge + corner dots on BOTH faces so it
+    // reads as a lid, not a blank board, from either side when turned on edge
     this.squareLid = new THREE.Group();
     const sq = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.04, 0.68), lam("mhIron", () => ({ color: "#2b2b2e" })));
     sq.castShadow = true;
-    const sqRing = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.012, 6, 4), lam("mhIronLight", () => ({ color: "#3d3d42" })));
-    sqRing.rotation.x = Math.PI / 2; sqRing.rotation.z = Math.PI / 4; sqRing.position.y = 0.022; sq.add(sqRing);
+    const sqFaceMat = lam("mhIronMid", () => ({ color: "#55555e" }));
+    for (const sign of [1, -1]) {
+      const sqRing = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.012, 6, 4), lam("mhIronLight", () => ({ color: "#3d3d42" })));
+      sqRing.rotation.x = (Math.PI / 2) * sign; sqRing.rotation.z = Math.PI / 4; sqRing.position.y = 0.022 * sign; sq.add(sqRing);
+      const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.014, 0.06), sqFaceMat);
+      ridge.rotation.y = Math.PI / 4; ridge.position.y = 0.021 * sign; sq.add(ridge);
+      for (const [cx, cz] of [[-0.26, -0.26], [0.26, -0.26], [-0.26, 0.26], [0.26, 0.26]] as const) {
+        const dot = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.014, 10), sqFaceMat);
+        dot.position.set(cx, 0.021 * sign, cz); sq.add(dot);
+      }
+    }
     this.squareLid.add(sq);
     R.add(this.squareLid);
     // round demo lid on the shelf (animated: spin)
@@ -333,8 +343,9 @@ export class ManholeWorld {
     const pressMat = lam("mhPress", () => ({ color: "#c9a227" }));
     const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.1, 1.1), pressMat);
     base.position.y = 0.05; base.castShadow = true; press.add(base);
+    const pressSteel = lam("mhPressSteel", () => ({ color: "#5a5e66" }));
     for (const dx of [-0.45, 0.45]) {
-      const col = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.8, 0.12), pressMat);
+      const col = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.8, 0.12), pressSteel);
       col.position.set(dx, 0.95, 0); col.castShadow = true; press.add(col);
     }
     const beam = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 0.2), pressMat);
@@ -349,12 +360,16 @@ export class ManholeWorld {
     this.pressPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1, 10), lam("mhPressPlate", () => ({ color: "#3a3a40" })));
     R.add(this.pressPiston);
 
-    // ---- Nashua triangle covers ----
+    // ---- Nashua triangle covers (0.08 thick, lighter iron + thin light rim so they read on the road) ----
     for (const [x, z, yaw] of [[-28, -1.8, 0.3], [-29.5, -0.8, 1.1], [-30.5, -2.2, 2.0]] as const) {
       const shape = new THREE.Shape();
       shape.moveTo(0, 0.42); shape.lineTo(0.4, -0.3); shape.lineTo(-0.4, -0.3); shape.closePath();
-      const tri = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.04, bevelEnabled: false }),
-        lam("mhIron", () => ({ color: "#2b2b2e" })));
+      const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.02, bevelEnabled: false }),
+        lam("mhTriRim", () => ({ color: "#9a9aa2" })));
+      rim.rotation.x = -Math.PI / 2; rim.rotation.z = yaw; rim.scale.set(1.15, 1.15, 1); rim.position.set(x, 0.04, z);
+      rim.castShadow = true; rim.receiveShadow = true; R.add(rim);
+      const tri = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.08, bevelEnabled: false }),
+        lam("mhTriIron", () => ({ color: "#4a4a50" })));
       tri.rotation.x = -Math.PI / 2; tri.rotation.z = yaw; tri.position.set(x, 0.04, z);
       tri.castShadow = true; tri.receiveShadow = true; R.add(tri);
     }
@@ -399,6 +414,10 @@ export class ManholeWorld {
     sc.left = -Rr; sc.right = Rr; sc.top = Rr; sc.bottom = -Rr; sc.near = 20; sc.far = 480; sc.updateProjectionMatrix();
     this.sun.shadow.bias = L.bias; this.sun.shadow.normalBias = L.normalBias * (Rr / 12);
     TONE.uLitCol.value.set(...L.lit); TONE.uShadeCol.value.set(...L.shade); TONE.uShadeLift.value.set(...L.lift);
+    // manhole-local: LIGHTS.day shade/lift are blue-heavy and the lift term dominates on dark
+    // asphalt, so building shadows read as a blue wash on the road. Neutralise the shade tint
+    // (lit surfaces untouched; shadows stay visible, just grey instead of blue).
+    TONE.uShadeCol.value.set(0.31, 0.30, 0.32); TONE.uShadeLift.value.set(0.07, 0.07, 0.08);
     TONE.uLambert.value = L.lambert; TONE.uSideK.value = L.sideK; TONE.uTerm.value = L.term;
     TONE.uBounce.value.set(...LOOK.day.bounce); TONE.uSat.value = LOOK.day.sat;
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad;
