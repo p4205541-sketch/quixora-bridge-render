@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { staticFile } from "remotion";
 import { Batch, Strand, boxGeo, V, lam, buildTown, flagTex, Kit, Ray, kitClone } from "./build";
-import { beam, bed, rep, ctex, planksHD, beamHD, stoneHD, cobbleHD, grassHD, chainHD, waterNear, waterFar, cloudHD } from "./paint";
+import { beam, bed, rep, ctex, planksHD, beamHD, stoneHD, cobbleHD, grassHD, chainHD, waterNear, waterFar, cloudHD, heightFromTexture } from "./paint";
 import { Pen, fxSign } from "./toon";
 import { LIGHTS, LOOK, LightPreset } from "./lights";
 import { TONE, CHAR, LFB, twoTone, untone } from "./shade";
@@ -156,16 +156,21 @@ export class World {
     // ---- ground, river, quays (static batch) ----
     const b = new Batch();
     // HD painted textures (textures.md 5.1/5.2); every material is two-tone via lam() (shade.ts)
-    M.grass = lam("grassHD", () => ({ map: grassHD() }));
-    M.cobble = lam("cobbleHD", () => ({ map: cobbleHD() }));
-    M.wall = lam("wallHD", () => ({ map: stoneHD("wallHD", ["#c9bcaa", "#bfb19f", "#d1c5b4", "#b8aa97"], "#958776") }));
-    M.cope = lam("copeHD", () => ({ map: stoneHD("copeHD", ["#e6dccd", "#ddd3c3", "#ece4d6", "#d6cbba"], "#aea293") }));
-    M.tower = lam("towerHD", () => ({ map: stoneHD("towerHD") }));
+    const grassMap = grassHD(), cobbleMap = cobbleHD();
+    const wallMap = stoneHD("wallHD", ["#c9bcaa", "#bfb19f", "#d1c5b4", "#b8aa97"], "#958776");
+    const copeMap = stoneHD("copeHD", ["#e6dccd", "#ddd3c3", "#ece4d6", "#d6cbba"], "#aea293");
+    const towerMap = stoneHD("towerHD");
+    M.grass = lam("grassHD", () => ({ map: grassMap, bumpMap: heightFromTexture(grassMap), bumpScale: 0.11 }));
+    M.cobble = lam("cobbleHD", () => ({ map: cobbleMap, bumpMap: heightFromTexture(cobbleMap), bumpScale: 0.16 }));
+    M.wall = lam("wallHD", () => ({ map: wallMap, bumpMap: heightFromTexture(wallMap), bumpScale: 0.11 }));
+    M.cope = lam("copeHD", () => ({ map: copeMap, bumpMap: heightFromTexture(copeMap), bumpScale: 0.07 }));
+    M.tower = lam("towerHD", () => ({ map: towerMap, bumpMap: heightFromTexture(towerMap), bumpScale: 0.12 }));
     // iron: a coloured dark (navy, L* 16-22 in shade, never black) with one soft metal highlight (lighting.md 9.3)
     M.iron = twoTone(new THREE.MeshPhongMaterial({ color: "#3d414c", specular: "#8a8a8a", shininess: 60 }), 0.15);
     M.steel = twoTone(new THREE.MeshPhongMaterial({ color: "#7d8088", specular: "#b0b0b0", shininess: 45 }), 0.15); // bolts + eyes
-    M.wood = lam("wood", () => ({ map: beam() }));
-    M.bed = lam("bed", () => ({ map: bed() }));
+    const woodMap = beam(), bedMap = bed();
+    M.wood = lam("wood", () => ({ map: woodMap, bumpMap: heightFromTexture(woodMap), bumpScale: 0.06 }));
+    M.bed = lam("bed", () => ({ map: bedMap, bumpMap: heightFromTexture(bedMap), bumpScale: 0.09 }));
     M.sand = lam("sand", () => ({ color: "#e2c992" }));
     for (const s of [-1, 1]) {
       const zn = s * 30, zf = s * 900;
@@ -263,7 +268,9 @@ export class World {
     this.deckSide.setAttribute("normal", new THREE.Float32BufferAttribute(sn, 3));
     this.deckSide.setAttribute("uv", new THREE.Float32BufferAttribute(su, 2));
     this.deckSide.setIndex(si);
-    const deckM = lam("planksHD", () => ({ map: planksHD() })), sideM = lam("deckSide", () => ({ map: beamHD() }));
+    const deckMap = planksHD(), beamMap = beamHD();
+    const deckM = lam("planksHD", () => ({ map: deckMap, bumpMap: heightFromTexture(deckMap), bumpScale: 0.045 }));
+    const sideM = lam("deckSide", () => ({ map: beamMap, bumpMap: heightFromTexture(beamMap), bumpScale: 0.065 }));
     for (const mm of [deckM, sideM]) if (mm.map) { mm.map.anisotropy = 16; mm.map.needsUpdate = true; }
     for (const [g, m] of [[this.deckTop, deckM], [this.deckSide, sideM]] as const) {
       const mesh = new THREE.Mesh(g, m); mesh.castShadow = true; mesh.receiveShadow = true; mesh.frustumCulled = false; R.add(mesh);
