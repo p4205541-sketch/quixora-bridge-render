@@ -47,13 +47,8 @@ export const loadKit = () => {
 };
 
 // ---------------- painted textures ----------------
-const asphaltTex = () => ctex("mhAsphalt", 1024, 1024, (g, r) => {
+const asphaltTex = () => ctex("mhAsphalt2", 1024, 1024, (g, r) => {
   g.fillStyle = "#3a3a3e"; g.fillRect(0, 0, 1024, 1024);
-  for (let i = 0; i < 12000; i++) {
-    const v = r();
-    g.fillStyle = v < 0.5 ? "rgba(20,20,24,0.3)" : "rgba(120,120,128,0.22)";
-    g.fillRect(r() * 1024, r() * 1024, 2 + r() * 3, 2 + r() * 3);
-  }
   for (let i = 0; i < 14; i++) { // patches
     const x = r() * 1024, y = r() * 1024, w = 80 + r() * 200, h = 50 + r() * 120;
     g.fillStyle = "rgba(28,28,32,0.35)"; g.fillRect(x, y, w, h);
@@ -68,12 +63,8 @@ const asphaltTex = () => ctex("mhAsphalt", 1024, 1024, (g, r) => {
     g.fillStyle = "rgba(0,0,0,0.12)"; g.fillRect(0, z, 1024, 90);
   }
 });
-const concreteTex = () => ctex("mhConcrete", 512, 512, (g, r) => {
+const concreteTex = () => ctex("mhConcrete2", 512, 512, (g, r) => {
   g.fillStyle = "#9a9a94"; g.fillRect(0, 0, 512, 512);
-  for (let i = 0; i < 4000; i++) {
-    g.fillStyle = r() < 0.5 ? "rgba(70,70,68,0.18)" : "rgba(200,200,196,0.16)";
-    g.fillRect(r() * 512, r() * 512, 2, 2);
-  }
   g.strokeStyle = "rgba(60,60,58,0.55)"; g.lineWidth = 3;
   for (let x = 0; x <= 512; x += 128) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 512); g.stroke(); }
   for (let y = 0; y <= 512; y += 128) { g.beginPath(); g.moveTo(0, y); g.lineTo(512, y); g.stroke(); }
@@ -172,10 +163,10 @@ export class ManholeWorld {
 
     // ---- ground: road + sidewalks + markings (code-painted) ----
     const b = new Batch();
-    const asphalt = lam("mhAsphalt", () => ({ map: rep(asphaltTex(), 12, 1) }));
+    const asphalt = lam("mhAsphalt2", () => ({ map: rep(asphaltTex(), 12, 1) }));
     const road = new THREE.Mesh(new THREE.PlaneGeometry(90, 7.2), asphalt);
     road.rotation.x = -Math.PI / 2; road.position.set(0, 0, 0); road.receiveShadow = true; R.add(road);
-    const concrete = lam("mhConcrete", () => ({ map: rep(concreteTex(), 12, 1) }));
+    const concrete = lam("mhConcrete2", () => ({ map: rep(concreteTex(), 12, 1) }));
     for (const s of [1, -1]) {
       const walk = new THREE.Mesh(new THREE.BoxGeometry(90, 0.12, 3.0), concrete);
       walk.position.set(0, 0.06, s * 5.1); walk.receiveShadow = true; R.add(walk);
