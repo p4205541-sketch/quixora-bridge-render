@@ -217,11 +217,14 @@ export class BurglarWorld {
     // NO bathroom partition: the bathroom is an open alcove off the hallway, so the shot-6 pan
     // (painting -> bulb) and dad's walk (x 2.0 -> 5.2 at z 5.8) have a clear line of sight.
     // pitched roof: two slopes + gable triangles (castShadow OFF — sun reaches interiors)
+    // The ridge runs north-south along x=1 (apex y=5.0, eaves y=3.2 at x=-4 and x=6), so the
+    // slopes descend EAST-WEST (rotation about Z). The old boxes were rotated about X and
+    // formed a VALLEY (high at the front/back edges, low in the middle) — wrong vs the gables.
     const roofMat = lam("bgRoof", () => ({ color: "#7a4a3c" }));
-    const slopeN = new THREE.Mesh(new THREE.BoxGeometry(11.2, 0.12, 4.4), roofMat);
-    slopeN.position.set(1, 4.1, 1.75); slopeN.rotation.x = 0.475; R.add(slopeN);
-    const slopeS = new THREE.Mesh(new THREE.BoxGeometry(11.2, 0.12, 4.4), roofMat);
-    slopeS.position.set(1, 4.1, 5.25); slopeS.rotation.x = -0.475; R.add(slopeS);
+    const slopeW = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.12, 7.4), roofMat);
+    slopeW.position.set(-1.5, 4.1, 3.5); slopeW.rotation.z = 0.346; R.add(slopeW);
+    const slopeE = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.12, 7.4), roofMat);
+    slopeE.position.set(3.5, 4.1, 3.5); slopeE.rotation.z = -0.346; R.add(slopeE);
     // gable triangles (extruded): front/back walls above 3.2m up to the ridge 5.0m
     const gableMat = lam("bgGable", () => ({ color: wallCol }));
     for (const z of [0, 7]) {
