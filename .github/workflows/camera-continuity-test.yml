@@ -1,0 +1,54 @@
+name: Bridge Camera Continuity Clips
+
+on:
+  workflow_dispatch:
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - id: set
+        run: |
+          echo 'matrix=[{"name":"opening-town-to-bridge","frames":"100-340"},{"name":"side-to-front-and-chain","frames":"410-960"},{"name":"collapse-to-river","frames":"960-1160"},{"name":"river-park-return","frames":"1260-1810"},{"name":"final-bridge-crane","frames":"1820-2024"}]' >> "$GITHUB_OUTPUT"
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        clip: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ensure Google Chrome
+        run: |
+          if ! command -v google-chrome >/dev/null 2>&1; then
+            curl -sSL --max-time 120 -o /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo apt-get update -qq
+            sudo apt-get install -y /tmp/chrome.deb
+          fi
+          google-chrome --version
+      - name: Install dependencies
+        run: npm ci
+      - name: Type-check the complete Remotion project
+        run: npm run typecheck
+      - name: Verify every camera frame is continuous
+        run: npm run test:camera
+      - name: Render camera transition clip
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts BridgeShort out/${{ matrix.clip.name }}.mp4 \
+            --frames=${{ matrix.clip.frames }} --scale=0.5 \
+            --browser-executable=$(which google-chrome) --gl=swangle \
+            --chromium-flags='{"enable-unsafe-swiftshader":true}' \
+            --timeout=300000 --props='{"post":{"composer":false}}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: camera-${{ matrix.clip.name }}
+          path: out/${{ matrix.clip.name }}.mp4
