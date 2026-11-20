@@ -7,6 +7,34 @@ export const rng = (seed: number) => {
   return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
 };
 const cache = new Map<string, THREE.CanvasTexture>();
+const heightCache = new WeakMap<THREE.Texture, THREE.CanvasTexture>();
+/** Downsample a painted albedo into a subtle grayscale bump map. This adds real light-catching micro-relief
+ *  without changing the hand-painted colour art or introducing heavy external texture assets. */
+export const heightFromTexture = (source: THREE.Texture, size = 512) => {
+  const cached = heightCache.get(source);
+  if (cached) return cached;
+  const image = source.image as HTMLCanvasElement | ImageBitmap | undefined;
+  if (!image) return null;
+  const canvas = document.createElement("canvas");
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.drawImage(image as CanvasImageSource, 0, 0, size, size);
+  const pixels = ctx.getImageData(0, 0, size, size);
+  for (let i = 0; i < pixels.data.length; i += 4) {
+    const y = Math.round(pixels.data[i] * 0.2126 + pixels.data[i + 1] * 0.7152 + pixels.data[i + 2] * 0.0722);
+    pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = y;
+    pixels.data[i + 3] = 255;
+  }
+  ctx.putImageData(pixels, 0, 0);
+  const map = new THREE.CanvasTexture(canvas);
+  map.colorSpace = THREE.NoColorSpace;
+  map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  map.anisotropy = 4;
+  map.needsUpdate = true;
+  heightCache.set(source, map);
+  return map;
+};
 export const ctex = (key: string, w: number, h: number, draw: (g: CanvasRenderingContext2D, r: () => number) => void) => {
   let t = cache.get(key);
   if (!t) {
