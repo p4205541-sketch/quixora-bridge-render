@@ -80,12 +80,28 @@ jobs:
               --chromium-flags='{"enable-unsafe-swiftshader":true}' \
               --timeout=300000 --props="$PROPS"
           fi
+          if [ "$PASS" = "beauty" ]; then
+            # Per-frame DOF metadata from story.ts (focus distance in metres + thin-lens
+            # strength per frame). Used by the thin-lens compositor; also documents the
+            # focus the beauty pass was graded against. typescript comes from npm ci above.
+            node scripts/export-dof-focus.cjs --frames "$FRAMES" --out out/focus.csv
+            test "$(($(wc -l < out/focus.csv) - 1))" -gt 0
+            head -3 out/focus.csv
+          fi
           ls -lh out/
 
       - uses: actions/upload-artifact@v4
         with:
           name: bridge-${{ matrix.pass }}-pass
           path: out/${{ matrix.pass }}.mp4
+          if-no-files-found: error
+          retention-days: 3
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.pass == 'beauty'
+        with:
+          name: bridge-focus-data
+          path: out/focus.csv
           if-no-files-found: error
           retention-days: 3
 
