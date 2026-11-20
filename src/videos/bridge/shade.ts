@@ -9,6 +9,9 @@ export const TONE = {
   uShadeLift: { value: new THREE.Vector3() }, uLambert: { value: 0.35 }, uSideK: { value: 0.84 }, uTerm: { value: 0.2 },
   uBounce: { value: new THREE.Vector3() }, // warm bounce on shaded faces turned to the camera (golden only; day = 0)
   uSat: { value: 1 }, // world albedo saturation around its luminance (characters are not twoTone, so unaffected)
+  uBumpK: { value: 0 }, // bump-response gain (see TWO_TONE): amplifies ONLY the bump normal's sun-projection delta,
+  // so bump detail becomes visible without changing the base two-tone look. 0 = previous behaviour exactly.
+  uBumpClamp: { value: 0.03 }, // caps the bump delta so pathological spikes (seams, grazing angles) cannot blow out
 };
 /** character-card uniforms (lighting.md 9.2 cardShade); world.ts keeps them in sync with LIGHTS for cardshade.ts */
 export const CHAR = {
@@ -38,10 +41,23 @@ const TWO_TONE = /* glsl */ `
   reflectedLight.directDiffuse = alb * ( mix( uShadeCol, lit, sunTerm ) * skyK + uBounce * facing * clamp( 1.0 - dot( geometryNormal, upV ), 0.0, 1.0 ) * ( 1.0 - sunTerm ) )
     + uShadeLift * LIFT_K * ( 1.0 - sunTerm );
   reflectedLight.indirectDiffuse = vec3( 0.0 );                               // hemisphere/fill no longer used here
+  // --- bump response: the two-tone terms above saturate (sunTerm = 1 for any lit surface; lit keeps only
+  // 0.35 of the cosine), so the bump map's micro normal perturbation changes the output by < 1/255 and the
+  // texture stays invisible. This term isolates the bump signal itself: geometryNormal is the bump-perturbed
+  // normal, normalize(vNormal) * faceDirection is the unperturbed geometric normal in the same frame, so
+  // bumpNdl is EXACTLY the bump's contribution to the sun projection — zero on every non-bump material and
+  // on flat bump regions, so the base look is untouched. It is lit only (x sunTerm) and clamped.
+  #ifdef USE_BUMPMAP
+  {
+    vec3 baseN = normalize( vNormal ) * faceDirection;
+    float bumpNdl = dot( geometryNormal, sunV ) - dot( baseN, sunV );
+    reflectedLight.directDiffuse += alb * uBumpK * clamp( bumpNdl, -uBumpClamp, uBumpClamp ) * sunTerm;
+  }
+  #endif
 }
 #endif
 `;
-const DECL = "#include <common>\nuniform vec3 uLitCol; uniform vec3 uShadeCol; uniform vec3 uShadeLift; uniform float uLambert; uniform float uSideK; uniform float uTerm; uniform vec3 uBounce; uniform float uSat;";
+const DECL = "#include <common>\nuniform vec3 uLitCol; uniform vec3 uShadeCol; uniform vec3 uShadeLift; uniform float uLambert; uniform float uSideK; uniform float uTerm; uniform vec3 uBounce; uniform float uSat; uniform float uBumpK; uniform float uBumpClamp;";
 
 /** Lambert (or Phong: its specular term is kept, masked by the shadow) -> two-tone. Call once per material. */
 export function twoTone<T extends THREE.MeshLambertMaterial | THREE.MeshPhongMaterial>(m: T, liftK = 1): T {
@@ -52,7 +68,7 @@ export function twoTone<T extends THREE.MeshLambertMaterial | THREE.MeshPhongMat
       .replace("#include <lights_fragment_begin>", "float sunVis = 1.0;\n" + LFB)
       .replace("#include <lights_fragment_end>", "#include <lights_fragment_end>\n" + TWO_TONE);
   };
-  m.customProgramCacheKey = () => "twoTone5_" + liftK.toFixed(3);
+  m.customProgramCacheKey = () => "twoTone6_" + liftK.toFixed(3);
   return m;
 }
 
