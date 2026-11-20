@@ -172,6 +172,11 @@ export class ManholeWorld {
       walk.position.set(0, 0.06, s * 5.1); walk.receiveShadow = true; R.add(walk);
       const curb = new THREE.Mesh(new THREE.BoxGeometry(90, 0.14, 0.18), lam("mhCurb", () => ({ color: "#8a8a86" })));
       curb.position.set(0, 0.07, s * 3.68); curb.receiveShadow = true; R.add(curb);
+      // verge: pavement strip filling the bare gap between the sidewalk edge
+      // (z 6.6) and the building fronts (z 8.5) — without it the sky showed
+      // through as a bright blue band at every building base.
+      const verge = new THREE.Mesh(new THREE.BoxGeometry(90, 0.1, 4.0), concrete);
+      verge.position.set(0, 0.05, s * 8.55); verge.receiveShadow = true; R.add(verge);
     }
     // centre line (yellow dashes) + lane lines + zebra crossing
     const yellow = lam("mhYellow", () => ({ color: "#d8b13a" }));
