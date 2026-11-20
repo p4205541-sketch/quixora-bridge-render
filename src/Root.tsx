@@ -4,6 +4,7 @@ import { BridgeShort, BRIDGE_FRAMES } from "./videos/bridge/Bridge";
 import { FlyingThunderShort, THUNDER_FRAMES } from "./videos/thunder/Thunder";
 import { PachinkoLoopShort, PACHINKO_FRAMES } from "./videos/pachinko_loop/PachinkoLoopShort";
 import { ManholeShort, DURATION } from "./videos/manhole/Manhole";
+import { BurglarShort, DURATION as BURGLAR_DURATION } from "./videos/burglar/Burglar";
 
 export const Root: React.FC = () => (
   <>
@@ -43,6 +44,14 @@ export const Root: React.FC = () => (
       id="ManholeShort"
       component={ManholeShort}
       durationInFrames={DURATION}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+    <Composition
+      id="BurglarShort"
+      component={BurglarShort}
+      durationInFrames={BURGLAR_DURATION}
       fps={30}
       width={1080}
       height={1920}
