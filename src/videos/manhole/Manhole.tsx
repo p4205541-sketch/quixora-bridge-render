@@ -13,7 +13,8 @@ import { TOTAL, shotAt } from "./story";
 export const DURATION = TOTAL;
 
 // one entry per shot (id 1-18): the spoken line (lowercase caption) + timed stat pop-up
-const CAPTIONS: { line: string; stat?: string; note?: string }[] = [
+// statTop overrides the default 38% anchor when the default would sit on a face/prop.
+const CAPTIONS: { line: string; stat?: string; note?: string; statTop?: string }[] = [
   { line: "this iron lid weighs up to 275 pounds, and nothing but its shape holds it up.", stat: "275 POUNDS" },
   { line: "every day, you walk right over it." },
   { line: "but in new york alone, there are 267,000 of them.", stat: "267,000" },
@@ -28,8 +29,8 @@ const CAPTIONS: { line: string; stat?: string; note?: string }[] = [
   { line: "that's reason one. reason two: you can roll it." },
   { line: "no crane, no carrying, just roll it into place." },
   { line: "reason three: no corners to line up, so it fits every time." },
-  { line: "one american city tried triangles instead, 7,500 of them, and spent years swapping them all back.", stat: "7,500" },
-  { line: "and the lid itself is lab-tested to survive 40 tonnes of force.", stat: "40 TONNES", note: "lab test" },
+  { line: "one american city tried triangles instead, 7,500 of them, and spent years swapping them all back.", stat: "7,500", statTop: "30%" },
+  { line: "and the lid itself is lab-tested to survive 40 tonnes of force.", stat: "40 TONNES", note: "lab test", statTop: "30%" },
   { line: "so the next time you step over one, remember, the shape is doing all the work." },
   { line: "for more stories like this, like, share, and comment on the video, and make sure to subscribe and follow!" },
 ];
@@ -70,7 +71,7 @@ export const ManholeShort: React.FC = () => {
       {flash > 0 && <AbsoluteFill style={{ background: "#ffffff", opacity: flash }} />}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
         {cap.stat && (
-          <div style={{ position: "absolute", left: "50%", top: "38%", transform: "translateX(-50%)", textAlign: "center", width: "92%" }}>
+          <div style={{ position: "absolute", left: "50%", top: cap.statTop ?? "38%", transform: "translateX(-50%)", textAlign: "center", width: "92%" }}>
             <div style={{ fontFamily: "Arial, sans-serif", fontSize: 72, fontWeight: 900, color: "#ff9d33", textTransform: "uppercase", lineHeight: 1, textShadow: "0 5px 0 #000, 0 0 18px rgba(0,0,0,.8)" }}>{cap.stat}</div>
             {cap.note && <div style={{ fontFamily: "Arial, sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", textTransform: "uppercase", textShadow: "0 3px 0 #000, 0 0 12px rgba(0,0,0,.8)" }}>{cap.note}</div>}
           </div>
