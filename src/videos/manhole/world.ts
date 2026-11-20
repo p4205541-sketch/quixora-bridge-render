@@ -231,8 +231,8 @@ export class ManholeWorld {
     prop(b, kit, "building-type-h", 25, 0, -11, 5.5, 0);
 
     // ---- street props (Kenney) ----
-    for (const [x, s] of [[-20, 1], [-5, -1], [10, 1], [25, -1]] as const)
-      prop(b, kit, "light-curved", x, 0, s * 4.4, 4.5, s > 0 ? 0 : Math.PI);
+    for (const [x, z, yaw] of [[-20, 4.4, 0], [-5, -4.4, Math.PI], [10, 5.8, 0], [25, -4.4, Math.PI]] as const)
+      prop(b, kit, "light-curved", x, 0, z, 4.5, yaw); // x=10 lamp moved to z=5.8: clear of the S16 sightline to Milo
     prop(b, kit, "light-square", -35, 0, 4.4, 4.2, 0);
     prop(b, kit, "light-square", 35, 0, -4.4, 4.2, Math.PI);
     for (const x of [-30, 0, 30]) prop(b, kit, "electricity-pole", x, 0, -4.4, 6, 0);
@@ -365,11 +365,11 @@ export class ManholeWorld {
       const shape = new THREE.Shape();
       shape.moveTo(0, 0.42); shape.lineTo(0.4, -0.3); shape.lineTo(-0.4, -0.3); shape.closePath();
       const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.02, bevelEnabled: false }),
-        lam("mhTriRim", () => ({ color: "#9a9aa2" })));
-      rim.rotation.x = -Math.PI / 2; rim.rotation.z = yaw; rim.scale.set(1.15, 1.15, 1); rim.position.set(x, 0.04, z);
+        lam("mhTriRim", () => ({ color: "#b9b9c0" })));
+      rim.rotation.x = -Math.PI / 2; rim.rotation.z = yaw; rim.scale.set(1.3, 1.3, 1); rim.position.set(x, 0.04, z);
       rim.castShadow = true; rim.receiveShadow = true; R.add(rim);
       const tri = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.08, bevelEnabled: false }),
-        lam("mhTriIron", () => ({ color: "#4a4a50" })));
+        lam("mhTriIron", () => ({ color: "#6a6a72" })));
       tri.rotation.x = -Math.PI / 2; tri.rotation.z = yaw; tri.position.set(x, 0.04, z);
       tri.castShadow = true; tri.receiveShadow = true; R.add(tri);
     }
