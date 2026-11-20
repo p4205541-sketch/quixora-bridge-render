@@ -43,20 +43,38 @@ const fwd = new THREE.Vector3(), fpt = new THREE.Vector3();
  *  metres over [DEPTH_MIN, DEPTH_MAX]. MeshDepthMaterial on its own writes 1 - gl_FragCoord.z (hyperbolic: the whole
  *  40-110 m town-aerial range would crush to ~1 gray level), so onBeforeCompile replaces the packed output with a
  *  linear ramp from the true view distance (camera near/far are the ShotView values below: 0.2 / 1500). The depth
- *  shader has no fog / tone-mapping chunks, so the output is raw. Map + alphaTest are copied per source material so
- *  cut-out cards keep their silhouettes. Transparent non-depth-writing objects (clouds, smoke, soft fx, sun sprites)
+ *  shader has no fog / tone-mapping chunks, so the output is raw. Map + alphaTest (+ alphaMap / displacementMap)
+ *  are copied per source material so cut-out cards keep their silhouettes. Transparent non-depth-writing objects (clouds, smoke, soft fx, sun sprites)
  *  carry no depth info and are hidden by applyDepthPass. Convention matches the depth-studio compositor's default
  *  (near = white, far = black), so no --invert-depth is needed. */
 const DEPTH_MIN = 1, DEPTH_MAX = 150;
 const depthCache = new WeakMap<THREE.Material, THREE.MeshDepthMaterial>();
+/** Create (or reuse) a linearised depth material for a source material, preserving alpha cut-outs and displacement.
+ *  Hardening merged from the ChatGPT-integrated ZIP: shader-patch guard (throws instead of silently keeping the
+ *  hyperbolic depth output if three.js changes the output line), alphaMap + displacementMap support, toneMapped
+ *  off. The depth shader has no fog / tone-mapping / colorspace chunks (verified in three 0.187.0 source), so the
+ *  output is raw linear regardless. Cache-hit path re-copies map/alphaMap so expression swaps track (stills: the
+ *  swap runs once; video must re-run the swap every frame — see the useFrame comment below). */
 const linearDepth = (src: THREE.Material): THREE.MeshDepthMaterial => {
-  const srcAny = src as THREE.MeshDepthMaterial & { map?: THREE.Texture | null; alphaTest?: number };
+  const srcAny = src as THREE.MeshDepthMaterial & {
+    map?: THREE.Texture | null; alphaMap?: THREE.Texture | null; alphaTest?: number;
+    displacementMap?: THREE.Texture | null; displacementScale?: number; displacementBias?: number;
+  };
   let dm = depthCache.get(src);
   if (dm) {
     if (dm.map !== (srcAny.map ?? null)) { dm.map = srcAny.map ?? null; dm.needsUpdate = true; }
+    if (dm.alphaMap !== (srcAny.alphaMap ?? null)) { dm.alphaMap = srcAny.alphaMap ?? null; dm.needsUpdate = true; }
     return dm;
   }
-  dm = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, side: src.side });
+  dm = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.BasicDepthPacking, side: src.side,
+    map: srcAny.map ?? null, alphaMap: srcAny.alphaMap ?? null, alphaTest: srcAny.alphaTest ?? 0,
+    displacementMap: srcAny.displacementMap ?? null, displacementScale: srcAny.displacementScale ?? 1,
+    displacementBias: srcAny.displacementBias ?? 0, toneMapped: false,
+  });
+  // NOTE: no `fog` flag here — MeshDepthMaterial has no fog property in the three.js
+  // types, and the depth shader has no fog chunk anyway (verified in three 0.187.0
+  // source); scene-level fog is cleared in applyDepthPass instead.
   dm.onBeforeCompile = (shader) => {
     shader.uniforms.uNear = { value: 0.2 };
     shader.uniforms.uFar = { value: 1500 };
@@ -70,16 +88,25 @@ const linearDepth = (src: THREE.Material): THREE.MeshDepthMaterial => {
          float linT = clamp((viewD - uDMin) / (uDMax - uDMin), 0.0, 1.0);
          gl_FragColor = vec4(vec3(1.0 - linT), 1.0);`,
       );
+    if (!shader.fragmentShader.includes("linT")) {
+      throw new Error("Depth shader patch failed: Three.js MeshDepthMaterial output signature changed.");
+    }
   };
-  dm.map = srcAny.map ?? null;
-  if (srcAny.alphaTest) dm.alphaTest = srcAny.alphaTest;
   depthCache.set(src, dm);
   return dm;
 };
-const applyDepthPass = (scene: THREE.Scene) => {
+const applyDepthPass = (scene: THREE.Scene, renderer: THREE.WebGLRenderer) => {
+  // Depth values must stay raw linear: no fog, black background, linear output, no tone mapping. (The depth shader
+  // itself has no fog / tone-mapping / colorspace chunks, so these are belt-and-braces for any non-depth pixels.)
+  scene.fog = null;
+  scene.background = new THREE.Color(0x000000);
+  renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMappingExposure = 1;
   let swapped = 0, hidden = 0;
   scene.traverse((o) => {
     if ((o as THREE.Sprite).isSprite) { o.visible = false; hidden++; return; } // sun disc/halo: effectively at infinity
+    if ((o as THREE.Line).isLine || (o as THREE.Points).isPoints) { o.visible = false; hidden++; return; } // ink lines / point fx are not solid depth surfaces
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
     const mats = (Array.isArray(m.material) ? m.material : [m.material]) as THREE.Material[];
@@ -101,14 +128,17 @@ const useKit = () => {
 
 const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   const f = useCurrentFrame();
-  const { camera, scene } = useThree();
+  const { camera, scene, gl } = useThree();
   const world = useMemo(() => new World(kit), [kit]);
   const target = useMemo(() => new THREE.Vector3(), []);
   const on = useMemo(toggles, []);
   const depthSwapped = useRef(false);
   // Depth stills only: the world root is attached to the scene on commit, so the material swap must run in the
   // render loop — a render-body traverse would find an empty scene. Runs once; the loop re-renders after the swap.
-  useFrame(() => { if (on.depth && !depthSwapped.current) { depthSwapped.current = true; applyDepthPass(scene); } });
+  // VIDEO WARNING: the once-guard is stills-only. For video the swap must run every frame with mesh→source
+  // tracking: Fx.bind()/use() reassign mesh.material mid-video (cast.ts), which would overwrite the depth
+  // material and never be re-swapped. Do not use render-depth-passes.yml for full video until that is fixed.
+  useFrame(() => { if (on.depth && !depthSwapped.current) { depthSwapped.current = true; applyDepthPass(scene, gl); } });
   const fx = useMemo(() => ({
     ink: new InkPass(scene, camera as THREE.PerspectiveCamera),
     lens: new LensBlur({ maxCoC: 24, nearScale: 1.2 }),
