@@ -15,15 +15,26 @@ const mats = new Map<string, THREE.Material>();
 /** materials whose Strands are built as real interlocking chain links (MAT pass) instead of a textured box tube */
 const CHAIN_MATS = new WeakSet<THREE.Material>();
 export const lam = (key: string, make: () => THREE.MeshLambertMaterialParameters) => {
-  let m = mats.get(key) as THREE.MeshLambertMaterial | undefined;
+  let m = mats.get(key) as THREE.MeshLambertMaterial | THREE.MeshPhongMaterial | undefined;
   if (!m) {
     if (key === "chainHD") {
-      // MAT pass: the chain material (world.ts) becomes slate blue-grey iron with a soft painted-metal highlight;
-      // its Strands switch to link geometry, so links read in close-ups (bank f1780, overhead f1650)
+      // Preserve the existing stylised iron material and its link geometry.
       const c = twoTone(new THREE.MeshPhongMaterial({ color: "#7a8490", specular: "#6c727b", shininess: 30 }));
       CHAIN_MATS.add(c);
-      m = c as unknown as THREE.MeshLambertMaterial;
-    } else m = twoTone(new THREE.MeshLambertMaterial(make()));
+      m = c;
+    } else {
+      const params = make();
+      // Bump-bearing materials use Phong so the perturbed normal also modulates a soft
+      // specular response; Lambert stays for the rest, keeping the established two-tone
+      // shader on both. (Note: Lambert DOES implement bump mapping in three 0.187 —
+      // meshlambert includes normal_fragment_maps and USE_BUMPMAP fires on Lambert —
+      // so the Phong choice here is for the specular channel, not because Lambert lacks bump.)
+      const hasBump = !!params.bumpMap;
+      const material = hasBump
+        ? new THREE.MeshPhongMaterial({ ...params, specular: new THREE.Color("#34302a"), shininess: 12 })
+        : new THREE.MeshLambertMaterial(params);
+      m = twoTone(material);
+    }
     mats.set(key, m);
   }
   return m;
