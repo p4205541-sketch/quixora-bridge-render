@@ -6,11 +6,11 @@
 // source; the grade is display-referred, so it comes after tone mapping. Every pixel-sized parameter is specified at
 // 1080x1920 and scaled with the output size, so stills at --scale 0.5 and the 1440x2560 final match.
 // Place changes crossfade by stacking a second canvas for the fade frames; the hook ends on a 4-frame white flash.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { AbsoluteFill, continueRender, delayRender, getInputProps, useCurrentFrame } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
-import { useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
 import { BlendFunction, BloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { World, loadKit } from "./world";
@@ -77,16 +77,19 @@ const linearDepth = (src: THREE.Material): THREE.MeshDepthMaterial => {
   return dm;
 };
 const applyDepthPass = (scene: THREE.Scene) => {
+  let swapped = 0, hidden = 0;
   scene.traverse((o) => {
-    if ((o as THREE.Sprite).isSprite) { o.visible = false; return; } // sun disc/halo: effectively at infinity
+    if ((o as THREE.Sprite).isSprite) { o.visible = false; hidden++; return; } // sun disc/halo: effectively at infinity
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
     const mats = (Array.isArray(m.material) ? m.material : [m.material]) as THREE.Material[];
     if (mats.some((x) => (x as THREE.MeshBasicMaterial).transparent && (x as THREE.MeshBasicMaterial).depthWrite === false)) {
-      o.visible = false; return; // clouds, smoke, soft fx: no depth info
+      o.visible = false; hidden++; return; // clouds, smoke, soft fx: no depth info
     }
     m.material = Array.isArray(m.material) ? mats.map(linearDepth) : linearDepth(m.material);
+    swapped++;
   });
+  console.log(`[depth] swapped ${swapped} meshes, hid ${hidden} objects`);
 };
 
 const useKit = () => {
@@ -102,6 +105,10 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   const world = useMemo(() => new World(kit), [kit]);
   const target = useMemo(() => new THREE.Vector3(), []);
   const on = useMemo(toggles, []);
+  const depthSwapped = useRef(false);
+  // Depth stills only: the world root is attached to the scene on commit, so the material swap must run in the
+  // render loop — a render-body traverse would find an empty scene. Runs once; the loop re-renders after the swap.
+  useFrame(() => { if (on.depth && !depthSwapped.current) { depthSwapped.current = true; applyDepthPass(scene); } });
   const fx = useMemo(() => ({
     ink: new InkPass(scene, camera as THREE.PerspectiveCamera),
     lens: new LensBlur({ maxCoC: 24, nearScale: 1.2 }),
@@ -135,7 +142,6 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   fx.lens.cInf = d.cInf;
   gradeFor(fx.grade, SHOTS[id - 1].light);
   fx.grain.seed = f; // deterministic per frame
-  if (on.depth) applyDepthPass(scene); // depth stills only: replaces materials with linearised depth (white = near)
   return (
     <>
       <primitive object={world.root} dispose={null} />
