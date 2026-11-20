@@ -30,7 +30,7 @@ export const SINK_AT: V3 = [4.6, 0, 4.9]; // kitchen sink cabinet (catch scene)
 export const PAINT_AT: V3 = [0, 1.6, 6.6]; // hallway painting (now straight)
 export const BULB_AT: V3 = [5.8, 1.9, 6.4]; // bathroom bulb (now steady)
 export const TOOLBOX_AT: V3 = [-0.5, 0.62, 2.6]; // red toolbox on the coffee table (shot 14)
-export const PLATE16_AT: V3 = [0.85, 1.5, -0.02];
+export const PLATE16_AT: V3 = [-0.6, 1.5, -0.02]; // west of the door, away from the handyman's card (the (0.85, 1.5) spot put the plate behind his card)
 export const HOUSE61_AT: V3 = [-3, 0, -12];
 
 // ---------------- shots (from the real voice timings, 20 Nov 23:57 IST) ----------------
@@ -115,7 +115,7 @@ const dolly = (pos: V3, look: V3, k: number, rest: Partial<Cam> = {}): Shot =>
   ({ pos: [look[0] + (pos[0] - look[0]) * k, look[1] + (pos[1] - look[1]) * k, look[2] + (pos[2] - look[2]) * k], look, ...rest });
 
 // ---- framings ----
-const S1 = (f: number) => dolly([-0.7, 1.3, -1.4], HINGE_AT, pushK(f, 0, 0.003), { fov: 38 }); // ECU hinge, oil drop (camera west of the door so the handyman's head is ~33 deg off-axis, out of frame; hinge centred at 1.83 m)
+const S1 = (f: number) => dolly([-0.7, 1.3, -1.4], HINGE_AT, pushK(f, 0, 0.003), { fov: 42 }); // ECU hinge, oil drop (camera west of the door so the handyman's head is ~33 deg off-axis, out of frame; hinge centred at 1.83 m; fov 42 so the hinge + oil drop + a bit of the handyman's hand read)
 const S2 = (f: number) => dolly([5.0, 2.2, -8.0], [0.5, 1.8, 0], pushK(f, 63, 0.003), { fov: 46 }); // wide night exterior (closer and lower; house fills ~64% of frame height, handyman ~5.4 m away, readable)
 const S3 = (f: number) => dolly([-0.5, 1.8, 6.0], [0.67, 1.15, 1.0], pushK(f, 129, 0.002), { fov: 42 }); // dad pushes the silent door (camera in the hallway, shooting north through the doorway gap at the door+dad+mom cluster; the living-room camera put the cluster 26 deg wide, past the 24 deg frame)
 const S4 = (f: number) => dolly([-2.0, 1.7, 3.8], [0.55, 1.0, 0.7], pushK(f, 182, 0.002), { fov: 40 }); // dad at the hinge (off the partition wall x=2, 3.97 m from the dad; couch behind-left of the camera, out of frame)
@@ -126,13 +126,13 @@ const S6 = (f: number) => { // FIXED camera at the hallway's west end, look pans
   const u = smooth((f - 396) / 169);
   return {
     pos: [-3.5, 1.9, 6.0] as V3,
-    look: [lerp(0, 5.8, u), lerp(1.6, 1.9, u), lerp(6.6, 6.4, u)] as V3,
-    fov: 42, roll: 0,
+    look: [lerp(0, 5.8, u), lerp(1.6, 1.9, u), lerp(6.3, 6.1, u)] as V3, // look's z centred between the mom (6.9) and the dad's walk (5.4) — the old 6.6->6.4 look put the dad 1.1 m off-axis and out of the left edge; 6.2->6.0 pushed the mom's R edge out the right
+    fov: 46, roll: 0, // fov 46 (not 42): the mom (z 6.9) + dad's walk (z 5.4) + their 0.3 m cores span 2.1 m at ~5 m, which is 26.9 deg — just past the 24.4 deg frame at fov 42
   };
 };
 const S7 = (f: number) => dolly([1.5, 1.8, 4.8], [-2.6, 1.0, 2.8], pushK(f, 565, 0.002), { fov: 42 }); // dad worried on the couch, night (3.68 m from the dad; couch in frame behind him)
-const S8 = (f: number) => dolly([-3.0, 1.9, 0.6], [-0.6, 1.1, 3.9], pushK(f, 600, 0.001), { fov: 42 }); // priest blesses the rooms (from the northwest; priest 3.91 m, dad 4.02 m, mom 4.65 m away; the priest stands at (-0.5, 3.5) so the three figures fit the 24 deg frame)
-const S9 = (f: number) => dolly([-0.7, 1.3, -1.4], HINGE_AT, pushK(f, 738, 0.003), { fov: 38 }); // hinge oiled again, mirror of S1 (plate "16" ~35 deg off-axis, out of frame; hinge centred)
+const S8 = (f: number) => dolly([-3.7, 1.9, 0.3], [-0.65, 1.1, 3.8], pushK(f, 600, 0.001), { fov: 42 }); // priest blesses the rooms (camera pulled back to the northwest corner so the 2 m-wide three-figure group fits the 24 deg frame; look shifted 0.15 m toward the dad so his head stays in frame; priest 4.53 m away)
+const S9 = (f: number) => dolly([-0.7, 1.3, -1.4], HINGE_AT, pushK(f, 738, 0.003), { fov: 42 }); // hinge oiled again, mirror of S1 (plate "16" ~35 deg off-axis, out of frame; hinge centred; fov 42 so the hinge + oil drop + a bit of the handyman's hand read)
 const S10 = (f: number) => dolly([3.5, 2.8, -4.0], [0.4, 1.0, -0.4], pushK(f, 794, 0.002), { fov: 44 }); // CCTV high corner on the door (lower and further out, clear of the roof eave; handyman ~5.2 m away)
 const S11 = (f: number) => dolly([1.0, 1.7, 0.6], [-2.54, 0.9, 2.92], pushK(f, 972, 0.002), { fov: 42 }); // dad behind the couch, flashlight (camera west of the partition x=2, so the sightline no longer crosses it; look centred on the couch-to-dad span; dad 4.12 m away, couch in frame; TV cabinet behind-right of the camera)
 const S12 = (f: number) => dolly([2.2, 1.7, 0.6], [4.4, 0.7, 4.7], pushK(f, 1062, 0.002), { fov: 40 }); // under the sink (from the kitchen's northwest corner; table 18.5 deg off-axis, out of frame; handyman 4.92 m, dad 3.94 m away)
@@ -140,15 +140,15 @@ const S13 = (f: number) => { // house numbers: fixed street camera, look pans th
   // (the old pull-back pan moved the look off the plate in the first quarter and put both
   // houses out of frame; the pan now holds on the cluster for the first 40%, then whips to 61)
   const u = smooth((f - 1177) / 237);
-  const u2 = smooth(Math.max(0, (u - 0.4) / 0.6));
+  const u2 = smooth(Math.max(0, (u - 0.4) / 0.45)); // pan starts at f1272 (after "sixteen"), whips to house 61 by f1378 (before "sixty-one." at f1403); spread over 107 frames so the max turn stays under 3.5 deg/frame (the (u-0.6)/0.25 whip hit 5.0 deg/frame)
   return {
     pos: [3.5, 1.9, -4.5] as V3,
     look: [lerp(1.3, -2.1, u2), lerp(1.3, 1.5, u2), lerp(-0.9, -9.4, u2)] as V3,
     fov: 46, roll: 0,
   };
 };
-const S14 = (f: number) => dolly([2.5, 1.8, 4.5], [-0.6, 0.9, 2.4], pushK(f, 1414, 0.001), { fov: 40 }); // note taped to the toolbox (away from the television cabinet, which was 0.9 m from the lens; dad 3.91 m, mom 4.15 m away; the 0.002 dolly closed the dad to 3.01 m, so the push-in is gentle)
-const S15 = (f: number) => dolly([1.5, 1.9, 0.5], [-1.3, 1.2, 2.95], pushK(f, 1546, 0.001), { fov: 40 }); // handyman smiles — hard stop (camera INSIDE the living room's northeast corner; the street camera at (1.8, -0.2) shot through the front wall. Handyman 3.75 m away; look shifted 0.1 m toward the mom so her head stays in frame — her arm tip may crop, which is normal for a group shot)
+const S14 = (f: number) => dolly([-3.5, 1.8, 4.5], [-0.6, 0.9, 2.4], pushK(f, 1414, 0.0005), { fov: 40 }); // note taped to the toolbox (camera in the living room's SOUTHWEST corner, WEST of the partition x=2 — the old camera at (2.5, 4.5) was EAST of the partition and shot against it; sightline passes south of the couch; dad 3.94 m, mom 3.29 m, toolbox 3.64 m away)
+const S15 = (f: number) => dolly([1.5, 2.2, 0.5], [-1.3, 1.1, 2.95], pushK(f, 1546, 0.001), { fov: 40 }); // handyman smiles — hard stop (camera INSIDE the living room's northeast corner, HIGHER (y 2.2) so it looks down over the coffee table instead of the table filling the bottom half; the street camera at (1.8, -0.2) shot through the front wall. Handyman 3.75 m away; look shifted 0.1 m toward the mom so her head stays in frame — her arm tip may crop, which is normal for a group shot)
 
 const CAMS: Record<number, Key[]> = {
   1: [{ f: 0, s: S1 }], 2: [{ f: 63, s: S2 }], 3: [{ f: 129, s: S3 }], 4: [{ f: 182, s: S4 }],
@@ -172,10 +172,9 @@ const CAMERA_TRANSITIONS: CameraTransition[] = [
   { f: 1062, dur: 1, from: 11, to: 12, cut: true }, // hard cut: couch -> under the sink (the glide would cross the partition)
   { f: 1177, dur: 1, from: 12, to: 13, cut: true }, // hard cut: interior -> exterior
   { f: 1414, dur: 1, from: 13, to: 14, cut: true }, // hard cut: exterior -> interior
-  { f: 1546, dur: 48, from: 14, to: 15, lift: 1 }, // slow 48f glide into the punchline (the 30f glide turned 4.66 deg/frame)
-]; // 13 hard cuts; the 1 remaining glide (14->15) is a slow 48f reveal. Every cut is a genuine
-// location/time jump; the glides that remain are the only ones whose path stays clear of walls
-// and whose view swing fits the travel window.
+  { f: 1546, dur: 1, from: 14, to: 15, cut: true }, // hard cut: note taped (southwest corner) -> handyman smiles (northeast corner); the 48f glide turned 4.76 deg/frame across the room
+]; // 14 hard cuts, 0 glides. Every cut is a genuine location/time jump; the glides that remain are none —
+// the 14->15 glide was cut because the S14 camera moved to the southwest corner and the glide path swung too fast.
 
 const rawCamAt = (id: number, f: number): Cam => run(CAMS[id], f);
 /** Interpolate camera position and optical axis separately; linearly blending look points can make the lens
