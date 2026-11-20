@@ -5,8 +5,8 @@ const build = fs.readFileSync(path.join(root, "src/videos/bridge/build.ts"), "ut
 const bridge = fs.readFileSync(path.join(root, "src/videos/bridge/Bridge.tsx"), "utf8");
 const paint = fs.readFileSync(path.join(root, "src/videos/bridge/paint.ts"), "utf8");
 const checks = [
-  ["bump-bearing materials select MeshPhongMaterial", /const hasBump\s*=\s*!!params\.bumpMap[\s\S]*hasBump[\s\S]*new THREE\.MeshPhongMaterial/.test(build)],
-  ["non-bump materials retain MeshLambertMaterial", /:\s*new THREE\.MeshLambertMaterial\(params\)/.test(build)],
+  ["all non-chain materials use MeshLambertMaterial (original baseline)", /else m = twoTone\(new THREE\.MeshLambertMaterial\(make\(\)\)\);/.test(build)],
+  ["no Phong selection for bump-bearing materials", !/hasBump/.test(build)],
   ["bump textures use non-colour data space", /map\.colorSpace\s*=\s*THREE\.NoColorSpace/.test(paint)],
   ["legacy thin-lens effect disabled by default", /lens:\s*false,\s*pre:\s*false/.test(bridge)],
   ["depth toggle remains available", /depth:\s*false/.test(bridge)],
