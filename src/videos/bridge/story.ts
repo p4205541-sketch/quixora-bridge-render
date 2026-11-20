@@ -272,13 +272,87 @@ export const kickAt = (t: number) => {
   }
   return a;
 };
-export const camAt = (id: number, f: number): Cam => {
-  const c = run(CAMS[id], f), a = kickAt(T(f));
+// Camera cuts are converted to short, eased travelling moves. Long location changes use a raised arc so the
+// lens clears the bridge/town silhouettes instead of sliding through the deck or buildings. Durations are in
+// frames; large moves deliberately get more screen time than action inserts.
+type CameraTransition = { f: number; dur: number; from: number; to: number; lift?: number };
+const CAMERA_TRANSITIONS: CameraTransition[] = [
+  // shot boundaries
+  { f: 130, dur: 54, from: 1, to: 2, lift: 4 },
+  { f: 283, dur: 72, from: 2, to: 3, lift: 3 },
+  { f: 444, dur: 60, from: 3, to: 4, lift: 2 },
+  { f: 534, dur: 60, from: 4, to: 5, lift: 1.5 },
+  { f: 643, dur: 48, from: 5, to: 6, lift: 1.5 },
+  { f: 823, dur: 36, from: 6, to: 7, lift: 1.5 },
+  { f: 987, dur: 48, from: 7, to: 8, lift: 2 },
+  { f: 1134, dur: 24, from: 8, to: 9, lift: 1.5 },
+  { f: 1303, dur: 45, from: 10, to: 11, lift: 3 },
+  { f: 1411, dur: 90, from: 11, to: 12, lift: 8 },
+  { f: 1620, dur: 110, from: 12, to: 13, lift: 8 },
+  { f: 1735, dur: 60, from: 13, to: 14, lift: 3 },
+  { f: 1863, dur: 48, from: 14, to: 15, lift: 3 },
+  // former cut:true camera keys inside shots
+  { f: 497, dur: 12, from: 4, to: 4, lift: 1 },
+  { f: 717, dur: 36, from: 6, to: 6, lift: 2 },
+  { f: 871, dur: 36, from: 7, to: 7, lift: 1.5 },
+  { f: 925, dur: 36, from: 7, to: 7, lift: 1 },
+  { f: 1039, dur: 22, from: 8, to: 8, lift: 0.8 },
+  { f: 1062, dur: 24, from: 8, to: 8, lift: 1.5 },
+  { f: 1099, dur: 36, from: 8, to: 8, lift: 1.2 },
+  { f: 1690, dur: 30, from: 13, to: 13, lift: 1 },
+  { f: 1780, dur: 30, from: 14, to: 14, lift: 1 },
+  { f: 1932, dur: 30, from: 15, to: 15, lift: 2 },
+];
+
+const rawCamAt = (id: number, f: number): Cam => run(CAMS[id], f);
+/** Interpolate camera position and optical axis separately; linearly blending look points can make the lens
+ *  point through itself when the outgoing/incoming view directions are very different. */
+const travelMix = (a: Cam, b: Cam, u: number): Cam => {
+  const pos = a.pos.map((v, i) => v + (b.pos[i] - v) * u) as V3;
+  const da = a.look.map((v, i) => v - a.pos[i]) as V3;
+  const db = b.look.map((v, i) => v - b.pos[i]) as V3;
+  const la = Math.hypot(...da), lb = Math.hypot(...db);
+  const va = da.map((v) => v / Math.max(la, 1e-6)) as V3;
+  const vb = db.map((v) => v / Math.max(lb, 1e-6)) as V3;
+  const dot = Math.max(-0.9999, Math.min(0.9999, va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2]));
+  const omega = Math.acos(dot), sinOmega = Math.sin(omega);
+  const wa = Math.sin((1 - u) * omega) / sinOmega, wb = Math.sin(u * omega) / sinOmega;
+  const dir = [va[0] * wa + vb[0] * wb, va[1] * wa + vb[1] * wb, va[2] * wa + vb[2] * wb] as V3;
+  const dn = Math.hypot(...dir) || 1;
+  const distance = la + (lb - la) * u;
+  return {
+    pos,
+    look: [pos[0] + (dir[0] / dn) * distance, pos[1] + (dir[1] / dn) * distance, pos[2] + (dir[2] / dn) * distance],
+    fov: a.fov + (b.fov - a.fov) * u,
+    roll: a.roll + (b.roll - a.roll) * u,
+  };
+};
+const withKick = (c: Cam, f: number): Cam => {
+  const a = kickAt(T(f));
   if (!a) return c;
   const d: V3 = [c.look[0] - c.pos[0], c.look[1] - c.pos[1], c.look[2] - c.pos[2]];
   const L = Math.hypot(...d), h = Math.hypot(d[0], d[2]) || 1;
-  const m = (3 / 640) * Math.tan((c.fov * Math.PI) / 360) * L * a; // metres at the look distance for 3 px x a
+  const m = (3 / 640) * Math.tan((c.fov * Math.PI) / 360) * L * a;
   return { ...c, look: [c.look[0] - (d[2] / h) * m, c.look[1] + 0.6 * m, c.look[2] + (d[0] / h) * m], roll: c.roll + a * 0.004 };
+};
+
+/**
+ * One global camera path for the whole short. `id` is retained for API compatibility, but the active shot is
+ * resolved from the global frame so crossfade layers cannot render different camera poses. At each former cut,
+ * the camera eases from the outgoing framing to the incoming framing over a defined travel window.
+ */
+export const camAt = (_id: number, f: number): Cam => {
+  const active = shotAt(Math.max(0, Math.min(TOTAL - 1, f))).id;
+  const tr = CAMERA_TRANSITIONS.find((x) => f >= x.f - x.dur / 2 && f <= x.f + x.dur / 2);
+  if (!tr) return withKick(rawCamAt(active, f), f);
+  const start = tr.f - tr.dur / 2, end = tr.f + tr.dur / 2;
+  const from = rawCamAt(tr.from, start), to = rawCamAt(tr.to, end);
+  const u = glide((f - start) / Math.max(1, end - start));
+  const c = travelMix(from, to, u);
+  const distance = Math.hypot(to.pos[0] - from.pos[0], to.pos[1] - from.pos[1], to.pos[2] - from.pos[2]);
+  const arc = tr.lift ?? Math.min(8, Math.max(0.5, distance * 0.08));
+  c.pos = [c.pos[0], c.pos[1] + Math.sin(Math.PI * u) * arc, c.pos[2]];
+  return withKick(c, f);
 };
 /** frame at which the current key's move has finished (for picking billboard views per key, not per frame) */
 export const keyEnd = (id: number, f: number) => {
