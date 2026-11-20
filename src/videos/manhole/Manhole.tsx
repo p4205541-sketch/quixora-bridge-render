@@ -1,7 +1,7 @@
 // ManholeShort composition — mirrors Bridge.tsx's structure, NO EffectComposer anywhere.
 // post.composer:false always. TOTAL 1770 frames @ 30fps, 1080x1920.
 // Captions: RicksClips-style — sentence-case, ONE WORD at a time synced to speech,
-// white with thick black outline, lower third; stats in bold orange capitals.
+// white with thick black outline, lower third; NO stat pop-ups (RicksClips has none).
 import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { AbsoluteFill, continueRender, delayRender, useCurrentFrame } from "remotion";
@@ -13,28 +13,6 @@ import { TOTAL, shotAt } from "./story";
 
 export const DURATION = TOTAL;
 
-// one entry per shot (id 1-18): timed stat pop-up (orange bold capitals).
-// statTop overrides the default 38% anchor when the default would sit on a face/prop.
-const STATS: { stat?: string; note?: string; statTop?: string }[] = [
-  { stat: "275 POUNDS" },
-  {},
-  { stat: "267,000" },
-  { stat: "2,000" },
-  {},
-  {},
-  {},
-  { stat: "1.414x" },
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  { stat: "7,500", statTop: "30%" },
-  { stat: "40 TONNES", note: "lab test", statTop: "30%" },
-  {},
-  {},
-];
 
 // RicksClips-style captions: sentence-case, ONE WORD at a time, synced to speech.
 // Windows derived from audio/timings.json: each sentence's words spread evenly
@@ -273,7 +251,6 @@ export const ManholeShort: React.FC = () => {
   const f = useCurrentFrame();
   const kit = useKit();
   const id = shotAt(f).id;
-  const cap = STATS[id - 1];
   const word = WORDS.find((w) => f >= w.a && f < w.b)?.text ?? "";
   const flash = f >= 1228 && f < 1234 ? [1, 0.75, 0.45, 0.2, 0.1, 0][f - 1228] ?? 0 : 0;
   return (
@@ -287,12 +264,6 @@ export const ManholeShort: React.FC = () => {
       )}
       {flash > 0 && <AbsoluteFill style={{ background: "#ffffff", opacity: flash }} />}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-        {cap.stat && (
-          <div style={{ position: "absolute", left: "50%", top: cap.statTop ?? "38%", transform: "translateX(-50%)", textAlign: "center", width: "92%" }}>
-            <div style={{ fontFamily: "Arial, sans-serif", fontSize: 72, fontWeight: 900, color: "#ff9d33", textTransform: "uppercase", lineHeight: 1, textShadow: "0 5px 0 #000, 0 0 18px rgba(0,0,0,.8)" }}>{cap.stat}</div>
-            {cap.note && <div style={{ fontFamily: "Arial, sans-serif", fontSize: 26, fontWeight: 800, color: "#fff", textTransform: "uppercase", textShadow: "0 3px 0 #000, 0 0 12px rgba(0,0,0,.8)" }}>{cap.note}</div>}
-          </div>
-        )}
         <div style={{ position: "absolute", left: "50%", bottom: 190, transform: "translateX(-50%)", textAlign: "center", width: "90%" }}>
           <div style={{ fontFamily: "Arial, sans-serif", fontSize: 40, fontWeight: 900, color: "#fff", lineHeight: 1.15, textShadow: "0 3px 0 #000, 3px 0 0 #000, -3px 0 0 #000, 0 -3px 0 #000, 0 0 14px rgba(0,0,0,.8)" }}>{word}</div>
         </div>
