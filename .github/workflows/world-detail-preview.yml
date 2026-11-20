@@ -1,0 +1,80 @@
+name: Bridge 3D World Detail Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      scale:
+        description: "Preview render scale"
+        required: true
+        default: "0.5"
+        type: choice
+        options: ["0.25", "0.5", "0.75"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Type-check project
+        run: npm run typecheck
+      - name: Validate world detail upgrades and story preservation
+        run: npm run test:world
+      - name: Validate reusable world blueprint and audio profile
+        run: npm run test:blueprint
+      - name: Validate camera continuity data
+        run: npm run test:camera
+
+  render-previews:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: opening-bridge
+            frame: 180
+          - name: town-houses
+            frame: 720
+          - name: park-and-swing
+            frame: 1450
+          - name: final-bridge
+            frame: 1950
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Ensure Google Chrome
+        run: |
+          if ! command -v google-chrome >/dev/null 2>&1; then
+            curl -sSL --max-time 120 -o /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo apt-get update -qq
+            sudo apt-get install -y /tmp/chrome.deb
+          fi
+          google-chrome --version
+      - name: Render world-detail still
+        run: |
+          mkdir -p out
+          npx remotion still src/index.ts BridgeShort out/${{ matrix.name }}.png \
+            --frame=${{ matrix.frame }} --scale=${{ inputs.scale }} \
+            --browser-executable=$(which google-chrome) --gl=swangle \
+            --chromium-flags='{"enable-unsafe-swiftshader":true}' --timeout=300000 \
+            --props='{"post":{"composer":false}}'
+          # NOTE: post.composer must be false — the EffectComposer draws nothing
+          # under SwiftShader (verified dead on every software backend), so without
+          # this the stills come back blank.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: world-detail-${{ matrix.name }}
+          path: out/${{ matrix.name }}.png
