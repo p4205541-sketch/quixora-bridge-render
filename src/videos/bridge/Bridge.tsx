@@ -23,8 +23,8 @@ import { TOTAL, FLASH_AT, SHOTS, layersAt, dofAt } from "./story";
 export const BRIDGE_FRAMES = TOTAL;
 
 /** A/B switches for test stills only (Remotion inputProps `{ post: { ink: false, ... } }`); everything is on by default. */
-type PostToggles = { ink: boolean; lens: boolean; pre: boolean; bloom: boolean; grade: boolean; grain: boolean; composer: boolean; fbtype: "half" | "byte"; msaa: number };
-const toggles = (): PostToggles => ({ ink: true, lens: true, pre: true, bloom: true, grade: true, grain: false, composer: true, fbtype: "half", msaa: 4, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
+type PostToggles = { ink: boolean; lens: boolean; pre: boolean; bloom: boolean; grade: boolean; grain: boolean; composer: boolean; fbtype: "half" | "byte"; msaa: number; depth: boolean };
+const toggles = (): PostToggles => ({ ink: true, lens: true, pre: true, bloom: true, grade: true, grain: false, composer: true, fbtype: "half", msaa: 4, depth: false, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
 
 /** Bloom for emissive sources only (depth.md 6.4). Its MIP chain always starts at 540x960 (half of 1080x1920),
  *  whatever the output size, so the glow keeps the same size relative to the frame (e-fold ~30 px at 1080p,
@@ -38,6 +38,56 @@ const makeBloom = () => {
 };
 
 const fwd = new THREE.Vector3(), fpt = new THREE.Vector3();
+
+/** Depth-pass stills (post.depth, composer off): linearised grayscale depth, WHITE = NEAR, black = far, linear in
+ *  metres over [DEPTH_MIN, DEPTH_MAX]. MeshDepthMaterial on its own writes 1 - gl_FragCoord.z (hyperbolic: the whole
+ *  40-110 m town-aerial range would crush to ~1 gray level), so onBeforeCompile replaces the packed output with a
+ *  linear ramp from the true view distance (camera near/far are the ShotView values below: 0.2 / 1500). The depth
+ *  shader has no fog / tone-mapping chunks, so the output is raw. Map + alphaTest are copied per source material so
+ *  cut-out cards keep their silhouettes. Transparent non-depth-writing objects (clouds, smoke, soft fx, sun sprites)
+ *  carry no depth info and are hidden by applyDepthPass. Convention matches the depth-studio compositor's default
+ *  (near = white, far = black), so no --invert-depth is needed. */
+const DEPTH_MIN = 1, DEPTH_MAX = 150;
+const depthCache = new WeakMap<THREE.Material, THREE.MeshDepthMaterial>();
+const linearDepth = (src: THREE.Material): THREE.MeshDepthMaterial => {
+  const srcAny = src as THREE.MeshDepthMaterial & { map?: THREE.Texture | null; alphaTest?: number };
+  let dm = depthCache.get(src);
+  if (dm) {
+    if (dm.map !== (srcAny.map ?? null)) { dm.map = srcAny.map ?? null; dm.needsUpdate = true; }
+    return dm;
+  }
+  dm = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, side: src.side });
+  dm.onBeforeCompile = (shader) => {
+    shader.uniforms.uNear = { value: 0.2 };
+    shader.uniforms.uFar = { value: 1500 };
+    shader.uniforms.uDMin = { value: DEPTH_MIN };
+    shader.uniforms.uDMax = { value: DEPTH_MAX };
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nuniform float uNear;\nuniform float uFar;\nuniform float uDMin;\nuniform float uDMax;")
+      .replace(
+        /gl_FragColor\s*=\s*vec4\(\s*vec3\(\s*1\.0\s*-\s*fragCoordZ\s*\)\s*,\s*opacity\s*\);/,
+        `float viewD = uNear / max(1.0 - fragCoordZ * (uFar - uNear) / uFar, 1e-4);
+         float linT = clamp((viewD - uDMin) / (uDMax - uDMin), 0.0, 1.0);
+         gl_FragColor = vec4(vec3(1.0 - linT), 1.0);`,
+      );
+  };
+  dm.map = srcAny.map ?? null;
+  if (srcAny.alphaTest) dm.alphaTest = srcAny.alphaTest;
+  depthCache.set(src, dm);
+  return dm;
+};
+const applyDepthPass = (scene: THREE.Scene) => {
+  scene.traverse((o) => {
+    if ((o as THREE.Sprite).isSprite) { o.visible = false; return; } // sun disc/halo: effectively at infinity
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) return;
+    const mats = (Array.isArray(m.material) ? m.material : [m.material]) as THREE.Material[];
+    if (mats.some((x) => (x as THREE.MeshBasicMaterial).transparent && (x as THREE.MeshBasicMaterial).depthWrite === false)) {
+      o.visible = false; return; // clouds, smoke, soft fx: no depth info
+    }
+    m.material = Array.isArray(m.material) ? mats.map(linearDepth) : linearDepth(m.material);
+  });
+};
 
 const useKit = () => {
   const [kit, setKit] = useState<Kit | null>(null);
@@ -62,7 +112,7 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   }), [camera, scene]);
   useEffect(() => () => fx.ink.dispose(), [fx]);
   const post = useMemo(() => (
-    on.composer ? (
+    on.composer && !on.depth ? (
       <EffectComposer multisampling={on.msaa} frameBufferType={on.fbtype === "byte" ? THREE.UnsignedByteType : THREE.HalfFloatType}>
         {on.ink ? <primitive object={fx.ink} dispose={null} /> : null}
         {on.lens && on.pre ? <primitive object={fx.lens.pre} dispose={null} /> : null}
@@ -85,6 +135,7 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   fx.lens.cInf = d.cInf;
   gradeFor(fx.grade, SHOTS[id - 1].light);
   fx.grain.seed = f; // deterministic per frame
+  if (on.depth) applyDepthPass(scene); // depth stills only: replaces materials with linearised depth (white = near)
   return (
     <>
       <primitive object={world.root} dispose={null} />
@@ -108,7 +159,7 @@ export const BridgeShort: React.FC = () => {
   const f = useCurrentFrame();
   const kit = useKit();
   if (!kit) return null;
-  const flash = f >= FLASH_AT && f < FLASH_AT + 4 ? [1, 0.75, 0.45, 0.2][f - FLASH_AT] : 0;
+  const flash = !toggles().depth && f >= FLASH_AT && f < FLASH_AT + 4 ? [1, 0.75, 0.45, 0.2][f - FLASH_AT] : 0;
   return (
     <AbsoluteFill style={{ background: "#cfe3f2" }}>
       {layersAt(f).map((l, i) => <ShotView key={i ? "over" : "base"} id={l.id} kit={kit} alpha={l.alpha} />)}
