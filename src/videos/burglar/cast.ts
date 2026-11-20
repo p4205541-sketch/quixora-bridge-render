@@ -293,8 +293,8 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     }
     case 6: { // pan: painting straight -> bulb steady; mom points at the painting, dad walks to the bulb
       const u = smooth((f - 396) / 169);
-      mom(1.5, 0, 6.2, POSES.pointAt, "puzzled"); // east along the back wall — 5.0 m from the camera (the old spot at (-0.8, 6.2) was 2.7 m away and her head filled the frame); her pointAt arm aims screen-right, at the painting
-      dad(lerp(2.0, 5.2, u), 0, 6.2, POSES.leanIn, "confused"); // walks east along the back wall
+      mom(1.5, 0, 6.9, POSES.pointAt, "puzzled"); // south side by the painting/back wall (the (1.5, 6.2) spot put her on the same sightline as the dad, hiding him)
+      dad(lerp(2.0, 5.2, u), 0, 5.4, POSES.leanIn, "confused"); // walks east on the NORTH side of the hallway, so he is visible beside the mom instead of directly behind her
       break;
     }
     case 7: { // dad at night by the couch, worried: haunted, by a helpful ghost
@@ -303,7 +303,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     }
     case 8: { // priest blesses the rooms (priest at (-0.5, 3.5) so the three figures fit the 24 deg frame — the old spot (0, 3.0) put him off the left edge)
       priest(-0.5, 0, 3.5, POSES.bless, "serene");
-      dad(-1.0, 0, 4.0, POSES.stand, "worried");
+      dad(-1.3, 0, 4.1, POSES.stand, "worried"); // further from the priest (the (-1.0, 4.0) spot put him 0.71 m from the priest, aligned on the view, hiding him)
       mom(-0.3, 0, 4.3, POSES.stand, "worried");
       break;
     }
@@ -336,7 +336,7 @@ export const stageBurglar = (id: number, t: number, f: number, cam: CamInfo): St
     }
     case 15: { // handyman smiles with the note — hard stop
       handyman(-1.2, 0, 3.0, POSES.holdNote, "grinning", { swaps: [52.5] });
-      dad(-2.0, 0, 3.8, POSES.stand, "amused"); // on the camera axis (the old spot was behind the camera's view)
+      dad(-2.6, 0, 3.0, POSES.stand, "amused"); // northwest, separated from the handyman on screen (the (-2.0, 3.8) spot put him on the same sightline, hidden behind the handyman's card)
       mom(-1.7, 0, 2.5, POSES.stand, "relieved"); // northwest of the handyman — screen-right, in frame (the (0.8, 3.5) spot was screen-left and off-frame; (-2.6, 2.2) was too far northwest and off the right edge)
       break;
     }
