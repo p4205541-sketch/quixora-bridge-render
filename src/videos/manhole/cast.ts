@@ -52,8 +52,8 @@ const POSES = {
   crouchReach: P([[205, 495], [280, 580], [350, 640]] as Limb, HANG_R,
     [[268, 645], [225, 790], [258, 962]] as Limb, [[332, 645], [375, 790], [342, 962]] as Limb, 0.9, 10),
   leanIn: P(HANG_L, HANG_R, LEG_L, LEG_R, 0.25, 12),
-  rollPush: P([[205, 495], [290, 580], [360, 640]] as Limb, [[395, 495], [330, 580], [280, 640]] as Limb,
-    [[268, 645], [300, 800], [330, 962]] as Limb, [[332, 645], [300, 800], [270, 962]] as Limb, 0.35, 14),
+  rollPush: P([[205, 495], [285, 575], [355, 650]] as Limb, [[395, 495], [465, 575], [535, 650]] as Limb,
+    [[268, 645], [300, 800], [330, 962]] as Limb, [[332, 645], [300, 800], [270, 962]] as Limb, 0.35, 18), // arms forward/down PARALLEL (no X), torso leans into the push
   stepOver: P(HANG_L, HANG_R, LEG_L, [[332, 645], [420, 760], [470, 700]] as Limb, 0, 4),
   wave: P(HANG_L, [[395, 495], [445, 380], [470, 260]] as Limb, LEG_L, LEG_R),
   palmsUp: P([[205, 495], [150, 560], [110, 520]] as Limb, [[395, 495], [450, 560], [490, 520]] as Limb, LEG_L, LEG_R),
@@ -258,17 +258,17 @@ export const stageManhole = (id: number, t: number, f: number, cam: CamInfo): St
   const ped = (who: CharName, x: number, y: number, z: number, pose: PoseDef, seed: number, extra: Partial<FigSpec> = {}) =>
     figureT(cam, out, { who, x, y, z, pose, expr: "plain", seed, ...extra }, t);
   switch (id) {
-    case 1: { // Milo lifts the iron lid
+    case 1: { // Milo lifts the iron lid (shifted toward frame centre: card edge was out at f107)
       const liftU = smooth((f - 60) / 60);
-      milo(0.6, 0, 0.9, blendPose(POSES.stand, POSES.lift, f < 60 ? 0 : liftU), "determined", { swaps: [2.0] });
+      milo(0.25, 0, 0.77, blendPose(POSES.stand, POSES.lift, f < 60 ? 0 : liftU), "determined", { swaps: [2.0] });
       ped("pedA", -3.5, 0.12, 4.6, POSES.stand, 11);
       ped("pedB", 4.5, 0.12, -4.6, POSES.stand, 12, { mirror: true });
       break;
     }
     case 2: { // pedestrians walk over the manhole (tight formation: portrait frame fits ~1.4 m of lateral spread at 7 m)
       for (let i = 0; i < 3; i++) {
-        const u = smooth((f - 144 - i * 4) / 51);
-        const x = lerp(-3, 3, u), z = 0.3 + (i - 1) * 0.7;
+        const u = smooth((f - 144 - i * 2) / 51);
+        const x = lerp(-3, 3, u), z = 0.3 + (i - 1) * 0.5;
         ped((["pedA", "pedB", "pedC"] as CharName[])[i], x, 0, z, gait(walkPhase(t * 1.4 + i * 0.25), 70, 80, 8), 20 + i, { mirror: i % 2 === 0 });
       }
       milo(0.9, 0, 1.0, POSES.stand, "watchful");
@@ -293,75 +293,75 @@ export const stageManhole = (id: number, t: number, f: number, cam: CamInfo): St
       milo(2.2, 0, 3.0, POSES.stand, "watchful");
       break;
     }
-    case 6: { // Vera gestures at the square lid
-      vera(4.8, 0.12, 4.8, POSES.pointAt, "skeptical", { swaps: [15.2] });
-      milo(3.0, 0.12, 4.6, POSES.stand, "determined");
+    case 6: { // Vera gestures at the square lid (shifted toward frame centre: card edge was out)
+      vera(4.6, 0.12, 4.9, POSES.pointAt, "skeptical", { swaps: [15.2] });
+      milo(3.1, 0.12, 4.55, POSES.stand, "determined");
       break;
     }
-    case 7: { // Milo turns the square lid on edge
+    case 7: { // Milo turns the square lid on edge (both shifted toward frame centre)
       const turnU = smooth((f - 540) / 78);
-      milo(3.0, 0.12, 4.6, blendPose(POSES.stand, POSES.crouchReach, turnU), "determined");
-      vera(4.8, 0.12, 4.8, POSES.crossArms, "skeptical");
+      milo(3.2, 0.12, 4.5, blendPose(POSES.stand, POSES.crouchReach, turnU), "determined");
+      vera(4.5, 0.12, 4.95, POSES.crossArms, "skeptical");
       break;
     }
-    case 8: { // diagonal close-up (both stand behind the rig, on the camera axis)
-      milo(3.7, 0.12, 6.0, POSES.crouch, "determined");
+    case 8: { // diagonal close-up (both stand behind the rig, on the camera axis; Milo nudged for the card-edge test)
+      milo(3.7, 0.12, 5.9, POSES.crouch, "determined");
       vera(4.7, 0.12, 6.2, POSES.leanIn, "skeptical", { swaps: [21.5] });
       break;
     }
-    case 9: { // square lid drops through
+    case 9: { // square lid drops through (Milo nudged for the card-edge test)
       const shock = smooth((f - 745) / 8);
-      milo(3.7, 0.12, 6.0, shock > 0.5 ? POSES.stand : POSES.leanIn, shock > 0.5 ? "surprised" : "watchful", { swaps: [24.9] });
+      milo(3.9, 0.12, 5.85, shock > 0.5 ? POSES.stand : POSES.leanIn, shock > 0.5 ? "surprised" : "watchful", { swaps: [24.9] });
       vera(4.7, 0.12, 6.2, POSES.stand, "surprised", { swaps: [24.9] });
       break;
     }
-    case 10: { // round lid on the rig, turning
-      milo(3.5, 0.12, 4.8, POSES.crouchReach, "determined");
+    case 10: { // round lid on the rig, turning (Milo nudged for the card-edge test)
+      milo(3.8, 0.12, 4.6, POSES.crouchReach, "determined");
       vera(4.8, 0.12, 4.8, POSES.leanIn, "watchful");
       break;
     }
-    case 11: { // round lid stays, cannot fall
-      milo(3.4, 0.12, 4.6, POSES.crossArms, "satisfied", { swaps: [30.5] });
-      vera(4.8, 0.12, 4.8, POSES.stand, "skeptical");
+    case 11: { // round lid stays, cannot fall (both nudged for the card-edge test)
+      milo(3.8, 0.12, 4.4, POSES.crossArms, "satisfied", { swaps: [30.5] });
+      vera(4.7, 0.12, 4.9, POSES.stand, "skeptical");
       break;
     }
     case 12: { // Milo rolls the round lid (Vera watches from east of the track, clear of the camera path)
       const u = smooth((f - 967) / 70);
       const lx = lerp(3.8, 1.8, u), lz = lerp(4.6, 2.2, u);
-      milo(lx + 0.55, lx > 2.5 ? 0.12 : 0, lz + 0.55, POSES.rollPush, "determined");
+      milo(lx + 0.3, lx > 2.5 ? 0.12 : 0, lz + 0.3, POSES.rollPush, "determined");
       vera(7.2, 0.12, 6.6, POSES.stand, "watchful");
       break;
     }
     case 13: { // rolling into place
       const u = smooth((f - 1038) / 82);
       const lx = lerp(1.8, 0.15, u), lz = lerp(2.2, 0.15, u);
-      milo(lx + 0.55, 0, lz + 0.55, POSES.rollPush, "determined");
+      milo(lx + 0.3, 0, lz + 0.3, POSES.rollPush, "determined");
       break;
     }
     case 14: { // lid drops in, fits every time (both lean over the hole from the camera side)
       const setU = smooth((f - 1120) / 40);
       milo(0.9, 0, -0.4, blendPose(POSES.rollPush, POSES.crouch, setU), setU > 0.5 ? "satisfied" : "determined");
-      vera(1.6, 0, -0.7, POSES.leanIn, "watchful");
+      vera(1.5, 0, -0.8, POSES.leanIn, "watchful");
       break;
     }
-    case 15: { // Nashua flashback — triangle covers
-      milo(-27.5, 0, -0.5, POSES.pointAway, "determined");
-      vera(-26.5, 0, 0.5, POSES.crossArms, "skeptical", { swaps: [42.0] });
+    case 15: { // Nashua flashback — triangle covers (Milo and Vera separated, no overlap; Vera nudged for the card-edge test)
+      milo(-28.8, 0, -1.0, POSES.pointAway, "determined");
+      vera(-26.6, 0, 0.9, POSES.crossArms, "skeptical", { swaps: [42.0] });
       ped("pedA", -31, 0, -2.5, POSES.stand, 51);
       break;
     }
-    case 16: { // press/test rig — 40-tonne test
-      milo(7.5, 0.12, 5.0, POSES.leanIn, "determined");
-      vera(9.5, 0.12, 5.6, POSES.crossArms, "skeptical", { swaps: [47.0] });
+    case 16: { // press/test rig — 40-tonne test (both west of the press, clear of the pulled-back camera; Milo nudged for the card-edge test)
+      milo(7.0, 0.12, 4.9, POSES.leanIn, "determined");
+      vera(7.2, 0.12, 5.8, POSES.crossArms, "skeptical", { swaps: [47.0] });
       break;
     }
-    case 17: { // pedestrian steps over, Milo vindicated
+    case 17: { // pedestrian steps over, Milo vindicated (Milo on the camera axis NW of the hole: head centred, card fits)
       const u = smooth((f - 1488) / 119);
       const x = lerp(-3.5, 3.5, u);
       const over = x > -0.6 && x < 0.6 ? 1 : 0;
       const po = over ? POSES.stepOver : gait(walkPhase(t * 1.4), 70, 80, 8);
       ped("pedC", x, 0, 0.3, po, 61);
-      milo(0.5, 0, 0.5, POSES.crossArms, "vindicated", { swaps: [50.5] });
+      milo(-0.8, 0, 0.8, POSES.crossArms, "vindicated", { swaps: [50.5] });
       break;
     }
     case 18: { // CTA — pull up the street
