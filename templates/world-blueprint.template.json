@@ -1,0 +1,136 @@
+{
+  "project": {
+    "name": "TODO_WORLD_NAME",
+    "story_id": "TODO_STORY_ID",
+    "quality_profile": "balanced",
+    "character_art_direction": "mixed_2d_style_characters_in_3d_world",
+    "target_resolution": "1080x1920",
+    "fps": 30
+  },
+  "visual_bible": {
+    "style_summary": "TODO: describe the world in 2-4 sentences",
+    "palette": [
+      "TODO_PRIMARY",
+      "TODO_SECONDARY",
+      "TODO_ACCENT"
+    ],
+    "architecture_language": "TODO",
+    "scale_reference": "TODO: door height, character height, street width",
+    "time_of_day": "TODO",
+    "weather": "TODO",
+    "atmosphere": "TODO"
+  },
+  "locations": [
+    {
+      "id": "LOC_01",
+      "name": "TODO_LOCATION",
+      "story_beats": [
+        "TODO"
+      ],
+      "layout": {
+        "dimensions_m": [
+          40,
+          30
+        ],
+        "entrances": [
+          "TODO"
+        ],
+        "exits": [
+          "TODO"
+        ],
+        "landmarks": [
+          "TODO"
+        ],
+        "camera_safe_corridors": [
+          "TODO"
+        ]
+      },
+      "planes": {
+        "foreground": [
+          "TODO"
+        ],
+        "midground": [
+          "TODO"
+        ],
+        "background": [
+          "TODO"
+        ]
+      },
+      "hero_assets": [
+        "TODO"
+      ],
+      "modular_kits": [
+        "TODO"
+      ],
+      "set_dressing": [
+        "TODO"
+      ],
+      "materials": [
+        {
+          "name": "TODO_MATERIAL",
+          "base_color": "TODO",
+          "roughness": 0.7,
+          "normal_or_bump_detail": "TODO"
+        }
+      ],
+      "lighting": {
+        "key_direction": "TODO",
+        "key_intensity": "TODO",
+        "fill": "TODO",
+        "shadow_style": "TODO",
+        "practical_lights": [
+          "TODO"
+        ]
+      },
+      "camera_constraints": {
+        "minimum_clearance_m": 1.0,
+        "focus_targets": [
+          "TODO"
+        ],
+        "avoid_occlusion_of": [
+          "TODO"
+        ],
+        "transition_in": "TODO",
+        "transition_out": "TODO"
+      },
+      "performance": {
+        "hero_texture_max_px": 2048,
+        "background_texture_max_px": 1024,
+        "use_instancing_for_repeats": true
+      }
+    }
+  ],
+  "character_integration": {
+    "preserve_identity": true,
+    "ground_contact_shadows": true,
+    "match_world_scale": true,
+    "preserve_outline_style": true,
+    "notes": "TODO"
+  },
+  "post_processing": {
+    "depth_of_field": "subject-following",
+    "bloom": "restrained",
+    "haze": "distance-based",
+    "warmth": "per-location",
+    "motion_blur": "only-if-justified"
+  },
+  "quality_assurance": {
+    "preview_frames": [
+      "TODO"
+    ],
+    "camera_transition_ranges": [
+      "TODO"
+    ],
+    "checks": [
+      "silhouette readability",
+      "material scale",
+      "no z-fighting",
+      "no camera clipping",
+      "character grounding",
+      "focus stability",
+      "render performance"
+    ],
+    "visual_review_required": true
+  },
+  "notes": "Replace every TODO before using this blueprint for a production world."
+}
